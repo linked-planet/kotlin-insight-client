@@ -1,0 +1,18 @@
+name: Docker Compose Actions Workflow
+on: push
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    with:
+      username: ${{ secrets.Username }}
+      password: ${{ secrets.Password }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: docker hub login
+        run: docker login -u $username -p $password
+      - name: Startup Jira and Insight
+        run: docker-compose up -d
+      - name: Wait for Jira and Insight
+        run: ./scripts/waitingForJira.sh
+      - name: Build and Test library
+        run: ./gradlew test --info
