@@ -9,13 +9,13 @@ do
   then
     result=1
   fi
-  if [ $index -ge 60 ]
+  if [ $index -ge 120 ]
   then
     echo "!!! JIRA NOT RUNNING AFTER 15 SECONDS"
     exit 1
   fi
   sleep 1
-  echo -e "\t### WAITING FOR JIRA"
+  echo -ne "### WAITING FOR JIRA since $index Seconds"\\r
   index=$((index+1))
 done
 echo "### JIRA IS UP"
