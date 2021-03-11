@@ -91,7 +91,7 @@ object ObjectOperator {
 
     private fun MyInsightEntry.getEditValues(): List<ObjectEditItemAttribute> =
         this.attributes
-            .filter { it.value.any { it.value != null } }
+            .filter { it.value.any { it.value != null } || this.isSelectField(it.attributeName) }
             .map {
                 val values = it.value.mapNotNull {
                     ObjectEditItemAttributeValue(
@@ -103,6 +103,9 @@ object ObjectOperator {
                     values
                 )
             }
+
+    private fun MyInsightEntry.isSelectField(attributeName: String): Boolean =
+        this.getAttributeType(attributeName)?.takeIf { it == "Select" }?.let { true }?:false
 
     suspend fun updateObject(obj: MyInsightEntry): MyInsightEntry {
         val schema = InsightConfig.objectSchemas.first { it.id == obj.typeId }

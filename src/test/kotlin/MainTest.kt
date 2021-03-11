@@ -1,6 +1,7 @@
 import com.linkedplanet.kotlinInsightWrapper.*
 import junit.framework.TestCase
 import kotlinx.coroutines.runBlocking
+import org.junit.Test
 import java.io.File
 import java.security.MessageDigest
 
@@ -95,6 +96,43 @@ class MainTest : TestCase() {
         assertTrue(nameList == listOf("Object1", "Object2", "Object3"))
         assertTrue(firstNameList == listOf("F1", "F2", "F3"))
         println("")
+    }
+
+    @Test
+    fun testAddingSelectList(){
+        val obj = runBlocking {
+            ObjectOperator.getObjects(OBJECTS.TestWithLists.name)
+        }.first()
+        val results = obj.getValueList("StringList")
+        assertTrue(results.isEmpty())
+        obj.addValue("StringList", "A")
+        obj.addValue("StringList", "B")
+        runBlocking { ObjectOperator.updateObject(obj) }
+
+        val obj2 = runBlocking {
+            ObjectOperator.getObjects(OBJECTS.TestWithLists.name)
+        }.first()
+        val results2 = obj2.getValueList("StringList")
+        assertTrue(results2.size == 2)
+        assertTrue(results2.contains("A"))
+        assertTrue(results2.contains("B"))
+        obj2.removeValue("StringList", "B")
+        runBlocking { ObjectOperator.updateObject(obj2) }
+
+        val obj3 = runBlocking {
+            ObjectOperator.getObjects(OBJECTS.TestWithLists.name)
+        }.first()
+        val results3 = obj3.getValueList("StringList")
+        assertTrue(results3.size == 1)
+        assertTrue(results3.contains("A"))
+        obj3.removeValue("StringList", "A")
+        runBlocking { ObjectOperator.updateObject(obj3) }
+
+        val obj4 = runBlocking {
+            ObjectOperator.getObjects(OBJECTS.TestWithLists.name)
+        }.first()
+        val results4 = obj4.getValueList("StringList")
+        assertTrue(results4.isEmpty())
     }
 
     fun testSchemaLoad() {
