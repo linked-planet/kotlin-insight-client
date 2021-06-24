@@ -1,4 +1,4 @@
-import com.linkedplanet.kotlinInsightWrapper.*
+import com.linkedplanet.kotlininsightwrapper.ktor.*
 import junit.framework.TestCase
 import kotlinx.coroutines.runBlocking
 import org.junit.Test

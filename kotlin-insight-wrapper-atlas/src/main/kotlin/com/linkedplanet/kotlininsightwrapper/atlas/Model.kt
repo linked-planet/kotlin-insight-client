@@ -1,4 +1,4 @@
-package com.linkedplanet.kotlinInsightWrapper
+package com.linkedplanet.kotlininsightwrapper.atlas
 
 import org.joda.time.DateTime
 import java.util.Collections.emptyList
@@ -304,6 +304,15 @@ data class InsightObjectEntries(
     val objectEntries: List<InsightObject>
 )
 
+data class InsightSchemas(
+    val objectschemas: List<InsightSchema>
+)
+
+data class InsightSchema(
+    val id: Int,
+    val name: String
+)
+
 data class InsightObject(
     val id: Int,
     val label: String,
@@ -376,6 +385,7 @@ data class ObjectUpdateResponse(
     val objectKey: String
 )
 
+/*
 data class InsightAttachment(
     val id: Int,
     val author: String,
@@ -399,3 +409,4 @@ data class InsightAttachment(
         return true
     }
 }
+*/

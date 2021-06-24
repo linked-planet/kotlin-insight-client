@@ -1,4 +1,4 @@
-package com.linkedplanet.kotlinInsightWrapper
+package com.linkedplanet.kotlininsightwrapper.ktor
 
 import io.ktor.client.request.*
 

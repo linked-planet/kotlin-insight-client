@@ -1,7 +1,7 @@
-package com.linkedplanet.kotlinInsightWrapper
+package com.linkedplanet.kotlininsightwrapper.ktor
 
-import com.linkedplanet.kotlinInsightWrapper.ObjectOperator.getEditReferences
-import com.linkedplanet.kotlinInsightWrapper.ObjectOperator.getEditValues
+import com.linkedplanet.kotlininsightwrapper.ktor.ObjectOperator.getEditReferences
+import com.linkedplanet.kotlininsightwrapper.ktor.ObjectOperator.getEditValues
 import io.ktor.client.request.*
 import io.ktor.http.*
 
