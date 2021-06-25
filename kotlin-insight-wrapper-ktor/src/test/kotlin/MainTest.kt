@@ -1,3 +1,4 @@
+import com.linkedplanet.kotlininsightwrapper.core.*
 import com.linkedplanet.kotlininsightwrapper.ktor.*
 import junit.framework.TestCase
 import kotlinx.coroutines.runBlocking
@@ -99,7 +100,7 @@ class MainTest : TestCase() {
     }
 
     @Test
-    fun testAddingSelectList(){
+    fun testAddingSelectList() {
         val obj = runBlocking {
             ObjectOperator.getObjects(OBJECTS.TestWithLists.name)
         }.first()
@@ -178,8 +179,10 @@ class MainTest : TestCase() {
             // Check Delete
             ObjectOperator.deleteObject(countryReference.objectId)
             ObjectOperator.deleteObject(company1.id)
-            val companyAfterDelete = ObjectOperator.getObjectByName(OBJECTS.Company.name, company1.getStringValue(COMPANY.Name.name)!!)
-            val countryAfterDelete = ObjectOperator.getObjectByName(OBJECTS.Country.name, company1.getStringValue(COUNTRY.Name.name)!!)
+            val companyAfterDelete =
+                ObjectOperator.getObjectByName(OBJECTS.Company.name, company1.getStringValue(COMPANY.Name.name)!!)
+            val countryAfterDelete =
+                ObjectOperator.getObjectByName(OBJECTS.Country.name, company1.getStringValue(COUNTRY.Name.name)!!)
             assertTrue(companyAfterDelete == null)
             assertTrue(countryAfterDelete == null)
         }
@@ -230,7 +233,8 @@ class MainTest : TestCase() {
         runBlocking {
             val country = ObjectOperator.getObjectByName(OBJECTS.Country.name, "Germany")!!
             val uploadFile = File(MainTest::class.java.getResource("TestAttachment.pdf").file)
-            val newAttachment = AttachmentOperator.uploadAttachment(country.id, uploadFile.name, uploadFile.readBytes(), "MyComment")
+            val newAttachment =
+                AttachmentOperator.uploadAttachment(country.id, uploadFile.name, uploadFile.readBytes(), "MyComment")
             val attachments = AttachmentOperator.getAttachments(country.id)
             assertTrue(attachments.size == 1)
             assertTrue(newAttachment.first().author == attachments.first().author)

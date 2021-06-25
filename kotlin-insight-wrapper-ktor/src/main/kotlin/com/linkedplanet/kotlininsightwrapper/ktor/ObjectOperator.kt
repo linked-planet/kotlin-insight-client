@@ -1,7 +1,6 @@
 package com.linkedplanet.kotlininsightwrapper.ktor
 
-import com.linkedplanet.kotlininsightwrapper.ktor.ObjectOperator.getEditReferences
-import com.linkedplanet.kotlininsightwrapper.ktor.ObjectOperator.getEditValues
+import com.linkedplanet.kotlininsightwrapper.core.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 
@@ -53,7 +52,8 @@ object ObjectOperator {
         return MyInsightEntry(
             schema.id,
             -1,
-            attributes
+            attributes,
+            InsightConfig.objectSchemas
         )
     }
 
@@ -87,7 +87,7 @@ object ObjectOperator {
                     it.attributeId,
                     values
                 )
-    }
+            }
 
     private fun MyInsightEntry.getEditValues(): List<ObjectEditItemAttribute> =
         this.attributes
@@ -105,7 +105,7 @@ object ObjectOperator {
             }
 
     private fun MyInsightEntry.isSelectField(attributeName: String): Boolean =
-        this.getAttributeType(attributeName)?.takeIf { it == "Select" }?.let { true }?:false
+        this.getAttributeType(attributeName)?.takeIf { it == "Select" }?.let { true } ?: false
 
     suspend fun updateObject(obj: MyInsightEntry): MyInsightEntry {
         val schema = InsightConfig.objectSchemas.first { it.id == obj.typeId }
@@ -143,7 +143,8 @@ object ObjectOperator {
         return MyInsightEntry(
             objectType.id,
             this.id,
-            attributes
+            attributes,
+            InsightConfig.objectSchemas
         )
     }
 

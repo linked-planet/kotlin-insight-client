@@ -1,5 +1,7 @@
 package com.linkedplanet.kotlininsightwrapper.ktor
 
+import com.linkedplanet.kotlininsightwrapper.core.ObjectTypeSchema
+import com.linkedplanet.kotlininsightwrapper.core.ObjectTypeSchemaAttribute
 import io.ktor.client.request.*
 
 object SchemaOperator {

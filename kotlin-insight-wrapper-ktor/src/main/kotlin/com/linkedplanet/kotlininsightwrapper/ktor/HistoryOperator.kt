@@ -1,5 +1,6 @@
 package com.linkedplanet.kotlininsightwrapper.ktor
 
+import com.linkedplanet.kotlininsightwrapper.core.InsightHistoryItem
 import io.ktor.client.request.*
 import io.ktor.http.*
 

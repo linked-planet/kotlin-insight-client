@@ -1,5 +1,6 @@
 package com.linkedplanet.kotlininsightwrapper.ktor
 
+import com.linkedplanet.kotlininsightwrapper.core.InsightAttachment
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.http.*

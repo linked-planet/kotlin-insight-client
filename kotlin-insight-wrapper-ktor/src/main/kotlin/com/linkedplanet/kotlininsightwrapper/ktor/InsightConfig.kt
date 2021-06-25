@@ -1,5 +1,6 @@
 package com.linkedplanet.kotlininsightwrapper.ktor
 
+import com.linkedplanet.kotlininsightwrapper.core.ObjectTypeSchema
 import io.ktor.client.*
 import kotlinx.coroutines.runBlocking
 

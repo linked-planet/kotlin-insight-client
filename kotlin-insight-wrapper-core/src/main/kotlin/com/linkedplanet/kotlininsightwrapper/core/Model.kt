@@ -386,27 +386,14 @@ data class ObjectUpdateResponse(
     val objectKey: String
 )
 
-// TODO: implement support for attachments
-//data class InsightAttachment(
-//    val id: Int,
-//    val author: String,
-//    val mimeType: String,
-//    val filename: String,
-//    val filesize: String,
-//    val created: String,
-//    val comment: String,
-//    val commentOutput: String,
-//    val url: String
-//) {
-//    suspend fun getBytes(): ByteArray {
-//        return AttachmentOperator.downloadAttachment(this)
-//    }
-//
-//    suspend fun delete(): Boolean {
-//        if (id <= 0) {
-//            return false
-//        }
-//        AttachmentOperator.deleteAttachment(this.id)
-//        return true
-//    }
-//}
+data class InsightAttachment(
+    val id: Int,
+    val author: String,
+    val mimeType: String,
+    val filename: String,
+    val filesize: String,
+    val created: String,
+    val comment: String,
+    val commentOutput: String,
+    val url: String
+)
