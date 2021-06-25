@@ -1,6 +1,7 @@
 package com.linkedplanet.kotlininsightwrapper.atlas
 
 import com.atlassian.applinks.api.ApplicationLink
+import com.linkedplanet.kotlininsightwrapper.core.ObjectTypeSchema
 
 
 object InsightConfig {

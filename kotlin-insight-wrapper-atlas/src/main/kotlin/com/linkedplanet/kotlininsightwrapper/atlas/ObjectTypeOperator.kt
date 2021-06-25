@@ -2,6 +2,8 @@ package com.linkedplanet.kotlininsightwrapper.atlas
 
 import com.atlassian.sal.api.net.Request
 import com.google.gson.reflect.TypeToken
+import com.linkedplanet.kotlininsightwrapper.core.ObjectTypeSchema
+import com.linkedplanet.kotlininsightwrapper.core.ObjectTypeSchemaAttribute
 import org.apache.http.entity.ContentType
 
 object ObjectTypeOperator {

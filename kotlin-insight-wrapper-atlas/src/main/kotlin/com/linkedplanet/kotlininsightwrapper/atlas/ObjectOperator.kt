@@ -1,6 +1,7 @@
 package com.linkedplanet.kotlininsightwrapper.atlas
 
 import com.atlassian.sal.api.net.Request
+import com.linkedplanet.kotlininsightwrapper.core.*
 import org.apache.http.entity.ContentType
 import org.slf4j.LoggerFactory
 
@@ -152,7 +153,8 @@ object ObjectOperator {
         return MyInsightEntry(
             schema.id,
             -1,
-            attributes
+            attributes,
+            InsightConfig.objectSchemas
         )
     }
 
@@ -259,7 +261,8 @@ object ObjectOperator {
         return MyInsightEntry(
             objectType.id,
             this.id,
-            attributes
+            attributes,
+            InsightConfig.objectSchemas
         )
     }
 
