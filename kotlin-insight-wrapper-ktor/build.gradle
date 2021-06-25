@@ -2,6 +2,7 @@ plugins {
     id "maven"
     id "java-library"
     id "org.jetbrains.kotlin.jvm"
+    id "com.avast.gradle.docker-compose"
 }
 
 dependencies {
@@ -16,6 +17,16 @@ dependencies {
 
     testCompile "junit:junit:4.12"
 }
+
+// Itests
+dockerCompose.isRequiredBy(test)
+dockerCompose {
+    useComposeFiles = ["${project.rootDir}/docker-compose.yml"]
+}
+task waitForJira(type: Exec) {
+    commandLine "${project.rootDir}/scripts/wait-for-jira.sh"
+}
+test.dependsOn(waitForJira)
 
 compileKotlin {
     kotlinOptions.jvmTarget = "1.8"
