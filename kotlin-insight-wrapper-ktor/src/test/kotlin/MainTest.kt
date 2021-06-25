@@ -42,7 +42,7 @@ class MainTest : TestCase() {
 
     fun testObjectListWithFlatReference() {
         val companies = runBlocking {
-            ObjectOperator.getObjects(OBJECTS.Company.name)
+            KtorObjectOperator.getObjects(OBJECTS.Company.name)
         }
         assertTrue(companies.size == 1)
         val company = companies.first()
@@ -53,12 +53,12 @@ class MainTest : TestCase() {
 
     fun testObjectListWithResolvedReference() {
         val companies = runBlocking {
-            ObjectOperator.getObjects(OBJECTS.Company.name)
+            KtorObjectOperator.getObjects(OBJECTS.Company.name)
         }
         assertTrue(companies.size == 1)
         val company = companies.first()
         val country = runBlocking {
-            ObjectOperator.getObject(
+            KtorObjectOperator.getObject(
                 OBJECTS.Country.name,
                 company.getSingleReference(COMPANY.Country.name)!!.objectId
             )!!
@@ -71,7 +71,7 @@ class MainTest : TestCase() {
 
     fun testObjectById() {
         val company = runBlocking {
-            ObjectOperator.getObject(OBJECTS.Company.name, 1)!!
+            KtorObjectOperator.getObject(OBJECTS.Company.name, 1)!!
         }
         assertTrue(company.id == 1)
         assertTrue(company.getStringValue(COMPANY.Name.name) == "Test GmbH")
@@ -80,7 +80,7 @@ class MainTest : TestCase() {
 
     fun testObjectWithListAttributes() {
         val obj = runBlocking {
-            ObjectOperator.getObjects(OBJECTS.TestWithLists.name)
+            KtorObjectOperator.getObjects(OBJECTS.TestWithLists.name)
         }.first()
 
         val references = obj.getMultiReference(TEST_WITH_LISTS.ItemList.name)
@@ -88,7 +88,7 @@ class MainTest : TestCase() {
         val nameList = references.map { it.objectName }
         val refList = references.map { insightReference ->
             runBlocking {
-                ObjectOperator.getObject(OBJECTS.SimpleObject.name, insightReference.objectId)!!
+                KtorObjectOperator.getObject(OBJECTS.SimpleObject.name, insightReference.objectId)!!
             }
         }
         val firstNameList = refList.map { it.getStringValue(SIMPLE_OBJECT.Firstname.name) }
@@ -102,35 +102,35 @@ class MainTest : TestCase() {
     @Test
     fun testAddingSelectList() {
         val obj = runBlocking {
-            ObjectOperator.getObjects(OBJECTS.TestWithLists.name)
+            KtorObjectOperator.getObjects(OBJECTS.TestWithLists.name)
         }.first()
         val results = obj.getValueList("StringList")
         assertTrue(results.isEmpty())
         obj.addValue("StringList", "A")
         obj.addValue("StringList", "B")
-        runBlocking { ObjectOperator.updateObject(obj) }
+        runBlocking { KtorObjectOperator.updateObject(obj) }
 
         val obj2 = runBlocking {
-            ObjectOperator.getObjects(OBJECTS.TestWithLists.name)
+            KtorObjectOperator.getObjects(OBJECTS.TestWithLists.name)
         }.first()
         val results2 = obj2.getValueList("StringList")
         assertTrue(results2.size == 2)
         assertTrue(results2.contains("A"))
         assertTrue(results2.contains("B"))
         obj2.removeValue("StringList", "B")
-        runBlocking { ObjectOperator.updateObject(obj2) }
+        runBlocking { KtorObjectOperator.updateObject(obj2) }
 
         val obj3 = runBlocking {
-            ObjectOperator.getObjects(OBJECTS.TestWithLists.name)
+            KtorObjectOperator.getObjects(OBJECTS.TestWithLists.name)
         }.first()
         val results3 = obj3.getValueList("StringList")
         assertTrue(results3.size == 1)
         assertTrue(results3.contains("A"))
         obj3.removeValue("StringList", "A")
-        runBlocking { ObjectOperator.updateObject(obj3) }
+        runBlocking { KtorObjectOperator.updateObject(obj3) }
 
         val obj4 = runBlocking {
-            ObjectOperator.getObjects(OBJECTS.TestWithLists.name)
+            KtorObjectOperator.getObjects(OBJECTS.TestWithLists.name)
         }.first()
         val results4 = obj4.getValueList("StringList")
         assertTrue(results4.isEmpty())
@@ -146,21 +146,21 @@ class MainTest : TestCase() {
     fun testCreateAndDelete() {
         runBlocking {
             // Check England does not exist
-            val countryBeforeCreate = ObjectOperator.getObjectByName(OBJECTS.Company.name, "England")
-            val companyBeforeCreate = ObjectOperator.getObjectByName(OBJECTS.Company.name, "MyTestCompany GmbH")
+            val countryBeforeCreate = KtorObjectOperator.getObjectByName(OBJECTS.Company.name, "England")
+            val companyBeforeCreate = KtorObjectOperator.getObjectByName(OBJECTS.Company.name, "MyTestCompany GmbH")
             assertTrue(countryBeforeCreate == null)
             assertTrue(companyBeforeCreate == null)
 
             // Create and check direct result
-            var country1 = ObjectOperator.createEmptyObject(OBJECTS.Country.name)
+            var country1 = KtorObjectOperator.createEmptyObject(OBJECTS.Country.name)
             country1.setStringValue(COUNTRY.Name.name, "England")
             country1.setStringValue(COUNTRY.ShortName.name, "GB")
-            country1 = ObjectOperator.createObject(country1)
+            country1 = KtorObjectOperator.createObject(country1)
 
-            var company1 = ObjectOperator.createEmptyObject(OBJECTS.Company.name)
+            var company1 = KtorObjectOperator.createEmptyObject(OBJECTS.Company.name)
             company1.setStringValue(COMPANY.Name.name, "MyTestCompany GmbH")
             company1.setSingleReference(COMPANY.Country.name, country1.id)
-            company1 = ObjectOperator.createObject(company1)
+            company1 = KtorObjectOperator.createObject(company1)
 
             assertTrue(country1.id > 0)
             assertTrue(country1.getStringValue(COUNTRY.Key.name)!!.isNotBlank())
@@ -169,20 +169,20 @@ class MainTest : TestCase() {
 
             // Check England does exists
             val countryReference = company1.getSingleReference(COMPANY.Country.name)!!
-            val countryAfterCreate = ObjectOperator.getObjectByName(OBJECTS.Country.name, "England")!!
-            val companyAfterCreate = ObjectOperator.getObjectByName(OBJECTS.Company.name, "MyTestCompany GmbH")!!
+            val countryAfterCreate = KtorObjectOperator.getObjectByName(OBJECTS.Country.name, "England")!!
+            val companyAfterCreate = KtorObjectOperator.getObjectByName(OBJECTS.Company.name, "MyTestCompany GmbH")!!
             assertTrue(countryAfterCreate.id == countryReference.objectId)
             assertTrue(countryAfterCreate.getStringValue(COUNTRY.Key.name) == countryReference.objectKey)
             assertTrue(countryAfterCreate.getStringValue(COUNTRY.Name.name) == countryReference.objectName)
             assertTrue(companyAfterCreate.id == company1.id)
 
             // Check Delete
-            ObjectOperator.deleteObject(countryReference.objectId)
-            ObjectOperator.deleteObject(company1.id)
+            KtorObjectOperator.deleteObject(countryReference.objectId)
+            KtorObjectOperator.deleteObject(company1.id)
             val companyAfterDelete =
-                ObjectOperator.getObjectByName(OBJECTS.Company.name, company1.getStringValue(COMPANY.Name.name)!!)
+                KtorObjectOperator.getObjectByName(OBJECTS.Company.name, company1.getStringValue(COMPANY.Name.name)!!)
             val countryAfterDelete =
-                ObjectOperator.getObjectByName(OBJECTS.Country.name, company1.getStringValue(COUNTRY.Name.name)!!)
+                KtorObjectOperator.getObjectByName(OBJECTS.Country.name, company1.getStringValue(COUNTRY.Name.name)!!)
             assertTrue(companyAfterDelete == null)
             assertTrue(countryAfterDelete == null)
         }
@@ -190,7 +190,7 @@ class MainTest : TestCase() {
 
     fun testFilter() {
         runBlocking {
-            val countries = ObjectOperator.getObjectsByIQL(OBJECTS.Country.name, "\"ShortName\"=\"DE\"")!!
+            val countries = KtorObjectOperator.getObjectsByIQL(OBJECTS.Country.name, "\"ShortName\"=\"DE\"")!!
             assertTrue(countries.size == 1)
             assertTrue(countries.first().getStringValue(COUNTRY.ShortName.name) == "DE")
             assertTrue(countries.first().getStringValue(COUNTRY.Name.name) == "Germany")
@@ -199,23 +199,23 @@ class MainTest : TestCase() {
 
     fun testUpdate() {
         runBlocking {
-            var country = ObjectOperator.getObjectByName(OBJECTS.Country.name, "Germany")!!
+            var country = KtorObjectOperator.getObjectByName(OBJECTS.Country.name, "Germany")!!
             assertTrue(country.getStringValue(COUNTRY.Name.name) == "Germany")
             assertTrue(country.getStringValue(COUNTRY.ShortName.name) == "DE")
             country.setStringValue(COUNTRY.ShortName.name, "ED")
-            country = ObjectOperator.updateObject(country)
+            country = KtorObjectOperator.updateObject(country)
 
-            val country2 = ObjectOperator.getObjectByName(OBJECTS.Country.name, "Germany")!!
+            val country2 = KtorObjectOperator.getObjectByName(OBJECTS.Country.name, "Germany")!!
             assertTrue(country2.getStringValue(COUNTRY.Name.name) == "Germany")
             assertTrue(country2.getStringValue(COUNTRY.ShortName.name) == "ED")
 
-            var countryAfterUpdate = ObjectOperator.getObjectByName(OBJECTS.Country.name, "Germany")!!
+            var countryAfterUpdate = KtorObjectOperator.getObjectByName(OBJECTS.Country.name, "Germany")!!
             assertTrue(countryAfterUpdate.getStringValue(COUNTRY.Name.name) == "Germany")
             assertTrue(countryAfterUpdate.getStringValue(COUNTRY.ShortName.name) == "ED")
             countryAfterUpdate.setStringValue(COUNTRY.ShortName.name, "DE")
-            countryAfterUpdate = ObjectOperator.updateObject(countryAfterUpdate)
+            countryAfterUpdate = KtorObjectOperator.updateObject(countryAfterUpdate)
 
-            val countryAfterReUpdate = ObjectOperator.getObjectByName(OBJECTS.Country.name, "Germany")!!
+            val countryAfterReUpdate = KtorObjectOperator.getObjectByName(OBJECTS.Country.name, "Germany")!!
             assertTrue(countryAfterReUpdate.getStringValue(COUNTRY.Name.name) == "Germany")
             assertTrue(countryAfterReUpdate.getStringValue(COUNTRY.ShortName.name) == "DE")
         }
@@ -223,7 +223,7 @@ class MainTest : TestCase() {
 
     fun testHistory() {
         runBlocking {
-            val country = ObjectOperator.getObjectByName(OBJECTS.Country.name, "Germany")!!
+            val country = KtorObjectOperator.getObjectByName(OBJECTS.Country.name, "Germany")!!
             val historyItems = HistoryOperator.getHistory(country.id)
             assertTrue(historyItems.isNotEmpty())
         }
@@ -231,11 +231,11 @@ class MainTest : TestCase() {
 
     fun testAttachments() {
         runBlocking {
-            val country = ObjectOperator.getObjectByName(OBJECTS.Country.name, "Germany")!!
+            val country = KtorObjectOperator.getObjectByName(OBJECTS.Country.name, "Germany")!!
             val uploadFile = File(MainTest::class.java.getResource("TestAttachment.pdf").file)
             val newAttachment =
-                AttachmentOperator.uploadAttachment(country.id, uploadFile.name, uploadFile.readBytes(), "MyComment")
-            val attachments = AttachmentOperator.getAttachments(country.id)
+                KtorAttachmentOperator.uploadAttachment(country.id, uploadFile.name, uploadFile.readBytes(), "MyComment")
+            val attachments = KtorAttachmentOperator.getAttachments(country.id)
             assertTrue(attachments.size == 1)
             assertTrue(newAttachment.first().author == attachments.first().author)
             assertTrue(newAttachment.first().comment == attachments.first().comment)
@@ -248,7 +248,7 @@ class MainTest : TestCase() {
             assertTrue(md5Hash == "3c2f34b03f483bee145a442a4574ca26")
 
             val deleted = newAttachment.first().delete()
-            val attachmentsAfterDelete = AttachmentOperator.getAttachments(country.id)
+            val attachmentsAfterDelete = KtorAttachmentOperator.getAttachments(country.id)
             assertTrue(attachmentsAfterDelete.isEmpty())
         }
     }

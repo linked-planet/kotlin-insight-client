@@ -1,37 +1,36 @@
 package com.linkedplanet.kotlininsightwrapper.ktor
 
+import com.linkedplanet.kotlininsightwrapper.core.BaseAttachmentOperator
 import com.linkedplanet.kotlininsightwrapper.core.InsightAttachment
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.http.*
 import java.net.URLConnection
 
-object AttachmentOperator {
+object KtorAttachmentOperator : BaseAttachmentOperator(InsightConfig.baseUrl) {
 
-    suspend fun getAttachments(objectId: Int): List<InsightAttachment> {
+    override suspend fun getAttachments(objectId: Int): List<InsightAttachment> {
         return InsightConfig.httpClient.get {
-            url("${InsightConfig.baseUrl}/rest/insight/1.0/attachments/object/${objectId}")
+            url("${attachmentsObjectEndpoint}/${objectId}")
             contentType(ContentType.Application.Json)
         }
     }
 
-    suspend fun downloadAttachment(obj: InsightAttachment): ByteArray {
-        val url = obj.url
-        val result = InsightConfig.httpClient.get<ByteArray> {
-            url(url)
+    override suspend fun downloadAttachment(obj: InsightAttachment): ByteArray {
+        return InsightConfig.httpClient.get {
+            url(obj.url)
         }
-        return result
     }
 
-    suspend fun uploadAttachment(
+    override suspend fun uploadAttachment(
         objectId: Int,
         filename: String,
         byteArray: ByteArray,
-        comment: String = ""
+        comment: String
     ): List<InsightAttachment> {
         val mimeType = URLConnection.guessContentTypeFromName(filename)
         InsightConfig.httpClient.post<String> {
-            url("${InsightConfig.baseUrl}/rest/insight/1.0/attachments/object/${objectId}")
+            url("${attachmentsObjectEndpoint}/${objectId}")
             header("Connection", "keep-alive")
             header("Cache-Control", "no-cache")
             body = MultiPartFormDataContent(
@@ -50,10 +49,9 @@ object AttachmentOperator {
         return getAttachments(objectId)
     }
 
-    suspend fun deleteAttachment(attachmentId: Int): String {
-        val result = InsightConfig.httpClient.delete<String> {
-            url("${InsightConfig.baseUrl}/rest/insight/1.0/attachments/${attachmentId}")
+    override suspend fun deleteAttachment(attachmentId: Int): String {
+        return InsightConfig.httpClient.delete {
+            url("${attachmentsEndpoint}/${attachmentId}")
         }
-        return result
     }
 }
