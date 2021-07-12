@@ -1,14 +1,15 @@
 package com.linkedplanet.kotlininsightwrapper.ktor
 
+import com.linkedplanet.kotlininsightwrapper.core.BaseHistoryOperator
 import com.linkedplanet.kotlininsightwrapper.core.InsightHistoryItem
 import io.ktor.client.request.*
 import io.ktor.http.*
 
-object HistoryOperator {
+object KtorHistoryOperator : BaseHistoryOperator(InsightConfig.baseUrl) {
 
     suspend fun getHistory(objectId: Int): List<InsightHistoryItem> {
         return InsightConfig.httpClient.get {
-            url("${InsightConfig.baseUrl}/rest/insight/1.0/object/${objectId}/history")
+            url(getHistoryEndpoint(objectId))
             contentType(ContentType.Application.Json)
         }
     }

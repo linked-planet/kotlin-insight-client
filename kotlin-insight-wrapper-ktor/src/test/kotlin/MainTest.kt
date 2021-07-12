@@ -224,7 +224,7 @@ class MainTest : TestCase() {
     fun testHistory() {
         runBlocking {
             val country = KtorObjectOperator.getObjectByName(OBJECTS.Country.name, "Germany")!!
-            val historyItems = HistoryOperator.getHistory(country.id)
+            val historyItems = KtorHistoryOperator.getHistory(country.id)
             assertTrue(historyItems.isNotEmpty())
         }
     }
