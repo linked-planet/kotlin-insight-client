@@ -11,7 +11,12 @@ class MainTest : TestCase() {
         Company,
         Country,
         TestWithLists,
-        SimpleObject
+        SimpleObject,
+        Many
+    }
+
+    enum class MANY {
+        Name
     }
 
     enum class COMPANY {
@@ -39,6 +44,101 @@ class MainTest : TestCase() {
         InsightConfig.init("http://localhost:8080", 1, "admin", "admin")
     }
 
+    @Test
+    fun testObjectsPaginationSize() {
+        val manySize = runBlocking {
+            ObjectOperator.getObjectPages(OBJECTS.Many.name)
+        }
+        assertTrue(manySize == 3)
+
+        val manySize2 = runBlocking {
+            ObjectOperator.getObjectPages(OBJECTS.Many.name, 50)
+        }
+        assertTrue(manySize2 == 2)
+
+        val manySize3 = runBlocking {
+            ObjectOperator.getObjectPages(OBJECTS.Many.name, 100)
+        }
+        assertTrue(manySize3 == 1)
+    }
+
+    @Test
+    fun testIQLPaginationSize() {
+        val manySize = runBlocking {
+            ObjectOperator.getObjectIqlPages(OBJECTS.Many.name, "Name is not empty")
+        }
+        assertTrue(manySize == 3)
+
+        val manySize2 = runBlocking {
+            ObjectOperator.getObjectIqlPages(OBJECTS.Many.name, "Name is not empty", 50)
+        }
+        assertTrue(manySize2 == 2)
+
+        val manySize3 = runBlocking {
+            ObjectOperator.getObjectIqlPages(OBJECTS.Many.name, "Name is not empty", 100)
+        }
+        assertTrue(manySize3 == 1)
+    }
+
+    @Test
+    fun testObjectsWithPaginationAllInOne() {
+        val many = runBlocking {
+            ObjectOperator.getObjects(OBJECTS.Many.name)
+        }
+        assertTrue(many.size == 55)
+    }
+
+    @Test
+    fun testIQLWithPaginationAllInOne() {
+        val many = runBlocking {
+            ObjectOperator.getObjectsByIQL(OBJECTS.Many.name, "Name is not empty")
+        }
+        assertTrue(many.size == 55)
+    }
+
+    @Test
+    fun testObjectsWithPaginationPages() {
+        val manyPage1 = runBlocking {
+            ObjectOperator.getObjects(OBJECTS.Many.name, 1)
+        }
+        val valuesPageOne = manyPage1.map { it.getStringValue("Name")!!.toInt() }
+        listOf(1,10,11,12,13,14,15,16,17,18,19,2,20,21,22,23,24,25,26,27,28,29,3,30,31).forEach {
+            assertTrue(valuesPageOne.contains(it))
+        }
+        assertTrue(manyPage1.size == 25)
+
+        val manyPage2 = runBlocking {
+            ObjectOperator.getObjects(OBJECTS.Many.name, 2, 26)
+        }
+        val valuesPage2 = manyPage2.map { it.getStringValue("Name")!!.toInt() }
+        listOf(33,34,35,36,37,38,39,4,40,41,42,43,44,45,46,47,48,49,5,50,51,52,53,54,55, 6).forEach {
+            assertTrue(valuesPage2.contains(it))
+        }
+        assertTrue(manyPage2.size == 26)
+    }
+
+    @Test
+    fun testIQLWithPaginationPages() {
+        val manyPage1 = runBlocking {
+            ObjectOperator.getObjectsByIQL(OBJECTS.Many.name, "Name is not empty", 1)
+        }
+        val valuesPageOne = manyPage1.map { it.getStringValue("Name")!!.toInt() }
+        listOf(1,10,11,12,13,14,15,16,17,18,19,2,20,21,22,23,24,25,26,27,28,29,3,30,31).forEach {
+            assertTrue(valuesPageOne.contains(it))
+        }
+        assertTrue(manyPage1.size == 25)
+
+        val manyPage2 = runBlocking {
+            ObjectOperator.getObjectsByIQL(OBJECTS.Many.name, "Name is not empty", 2, 26)
+        }
+        val valuesPage2 = manyPage2.map { it.getStringValue("Name")!!.toInt() }
+        listOf(33,34,35,36,37,38,39,4,40,41,42,43,44,45,46,47,48,49,5,50,51,52,53,54,55, 6).forEach {
+            assertTrue(valuesPage2.contains(it))
+        }
+        assertTrue(manyPage2.size == 26)
+    }
+
+    @Test
     fun testObjectListWithFlatReference() {
         val companies = runBlocking {
             ObjectOperator.getObjects(OBJECTS.Company.name)
@@ -50,6 +150,7 @@ class MainTest : TestCase() {
         assertTrue(company.getSingleReference(COMPANY.Country.name)!!.objectName == "Germany")
     }
 
+    @Test
     fun testObjectListWithResolvedReference() {
         val companies = runBlocking {
             ObjectOperator.getObjects(OBJECTS.Company.name)
@@ -68,6 +169,7 @@ class MainTest : TestCase() {
         assertTrue(country.getStringValue(COUNTRY.ShortName.name) == "DE")
     }
 
+    @Test
     fun testObjectById() {
         val company = runBlocking {
             ObjectOperator.getObject(OBJECTS.Company.name, 1)!!
@@ -77,6 +179,7 @@ class MainTest : TestCase() {
         assertTrue(company.getSingleReference(COMPANY.Country.name)!!.objectName == "Germany")
     }
 
+    @Test
     fun testObjectWithListAttributes() {
         val obj = runBlocking {
             ObjectOperator.getObjects(OBJECTS.TestWithLists.name)
@@ -135,6 +238,7 @@ class MainTest : TestCase() {
         assertTrue(results4.isEmpty())
     }
 
+    @Test
     fun testSchemaLoad() {
         val mySchemas = runBlocking {
             SchemaOperator.loadSchema()
@@ -142,6 +246,7 @@ class MainTest : TestCase() {
         val schemas = mySchemas
     }
 
+    @Test
     fun testCreateAndDelete() {
         runBlocking {
             // Check England does not exist
@@ -185,6 +290,7 @@ class MainTest : TestCase() {
         }
     }
 
+    @Test
     fun testFilter() {
         runBlocking {
             val countries = ObjectOperator.getObjectsByIQL(OBJECTS.Country.name, "\"ShortName\"=\"DE\"")!!
@@ -194,6 +300,7 @@ class MainTest : TestCase() {
         }
     }
 
+    @Test
     fun testUpdate() {
         runBlocking {
             var country = ObjectOperator.getObjectByName(OBJECTS.Country.name, "Germany")!!
@@ -218,6 +325,7 @@ class MainTest : TestCase() {
         }
     }
 
+    @Test
     fun testHistory() {
         runBlocking {
             val country = ObjectOperator.getObjectByName(OBJECTS.Country.name, "Germany")!!
@@ -226,6 +334,7 @@ class MainTest : TestCase() {
         }
     }
 
+    @Test
     fun testAttachments() {
         runBlocking {
             val country = ObjectOperator.getObjectByName(OBJECTS.Country.name, "Germany")!!

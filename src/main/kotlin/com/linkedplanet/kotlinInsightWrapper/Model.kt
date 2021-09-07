@@ -3,6 +3,12 @@ package com.linkedplanet.kotlinInsightWrapper
 import org.joda.time.DateTime
 import java.util.Collections.emptyList
 
+data class MyInsightPaginationResult(
+    val result: List<MyInsightEntry>,
+    val index: Int,
+    val pages: Int
+)
+
 data class MyInsightEntry(
     val typeId: Int,
     var id: Int,

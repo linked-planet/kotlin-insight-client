@@ -1,17 +1,49 @@
 package com.linkedplanet.kotlinInsightWrapper
 
-import com.linkedplanet.kotlinInsightWrapper.ObjectOperator.getEditReferences
-import com.linkedplanet.kotlinInsightWrapper.ObjectOperator.getEditValues
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonParser
 import io.ktor.client.request.*
 import io.ktor.http.*
 
 object ObjectOperator {
 
-    suspend fun getObjects(objectTypeName: String): List<MyInsightEntry> {
+    suspend fun getObjectPages(objectTypeName: String, resultsPerPage: Int = 25): Int {
+        val response = InsightConfig.httpClient.get<String> {
+            url("${InsightConfig.baseUrl}/rest/insight/1.0/iql/objects?objectSchemaId=${InsightConfig.schemaId}&iql=objectType=\"$objectTypeName\"&includeTypeAttributes=true&page=1&resultPerPage=$resultsPerPage")
+        }
+        return JsonParser().parse(response).asJsonObject.get("pageSize").asInt
+    }
+
+    suspend fun getObjectIqlPages(objectTypeName: String, iql: String, resultsPerPage: Int = 25): Int {
+        val response = InsightConfig.httpClient.get<String> {
+            url("${InsightConfig.baseUrl}/rest/insight/1.0/iql/objects?objectSchemaId=${InsightConfig.schemaId}&iql=objectType=$objectTypeName and $iql&includeTypeAttributes=true&page=1&resultPerPage=$resultsPerPage")
+        }
+        return JsonParser().parse(response).asJsonObject.get("pageSize").asInt
+    }
+
+    suspend fun getObjects(objectTypeName: String, page: Int = -1, resultsPerPage: Int = 25): List<MyInsightEntry> {
         val objectType = InsightConfig.objectSchemas.first { it.name == objectTypeName }
-        return InsightConfig.httpClient.get<InsightObjectEntries> {
-            url("${InsightConfig.baseUrl}/rest/insight/1.0/iql/objects?objectSchemaId=${InsightConfig.schemaId}&iql=objectType=\"$objectTypeName\"&includeTypeAttributes=true")
-        }.toValues(objectType)
+        return if (page < 0) {
+            var resultList = emptyList<MyInsightEntry>()
+            var index = 1
+            var max = 0
+            do {
+                val response = InsightConfig.httpClient.get<String> {
+                    url("${InsightConfig.baseUrl}/rest/insight/1.0/iql/objects?objectSchemaId=${InsightConfig.schemaId}&iql=objectType=\"$objectTypeName\"&includeTypeAttributes=true&page=$index&resultPerPage=$resultsPerPage")
+                }
+                val result =
+                    GsonBuilder().create().fromJson<InsightObjectEntries>(response, InsightObjectEntries::class.java)
+                        .toValues(objectType)
+                resultList = resultList + result
+                index += 1
+                max = JsonParser().parse(response).asJsonObject.get("pageSize").asInt
+            } while (index <= max)
+            return resultList
+        } else {
+            InsightConfig.httpClient.get<InsightObjectEntries> {
+                url("${InsightConfig.baseUrl}/rest/insight/1.0/iql/objects?objectSchemaId=${InsightConfig.schemaId}&iql=objectType=\"$objectTypeName\"&includeTypeAttributes=true&page=$page&resultPerPage=$resultsPerPage")
+            }.toValues(objectType)
+        }
     }
 
     suspend fun getObject(objectTypeName: String, id: Int): MyInsightEntry? {
@@ -33,12 +65,32 @@ object ObjectOperator {
 
     suspend fun getObjectsByIQL(
         objectTypeName: String,
-        iql: String
+        iql: String,
+        page: Int = -1,
+        resultsPerPage: Int = 25
     ): List<MyInsightEntry> {
         val objectType = InsightConfig.objectSchemas.first { it.name == objectTypeName }
-        return InsightConfig.httpClient.get<InsightObjectEntries> {
-            url("${InsightConfig.baseUrl}/rest/insight/1.0/iql/objects?objectSchemaId=${InsightConfig.schemaId}&iql=objectType=$objectTypeName and $iql&includeTypeAttributes=true")
-        }.toValues(objectType)
+        return if (page < 0) {
+            var resultList = emptyList<MyInsightEntry>()
+            var index = 1
+            var max = 0
+            do {
+                val response = InsightConfig.httpClient.get<String> {
+                    url("${InsightConfig.baseUrl}/rest/insight/1.0/iql/objects?objectSchemaId=${InsightConfig.schemaId}&iql=objectType=$objectTypeName and $iql&includeTypeAttributes=true&page=$index&resultPerPage=$resultsPerPage")
+                }
+                val result =
+                    GsonBuilder().create().fromJson<InsightObjectEntries>(response, InsightObjectEntries::class.java)
+                        .toValues(objectType)
+                resultList = resultList + result
+                index += 1
+                max = JsonParser().parse(response).asJsonObject.get("pageSize").asInt
+            } while (index <= max)
+            return resultList
+        } else {
+            InsightConfig.httpClient.get<InsightObjectEntries> {
+                url("${InsightConfig.baseUrl}/rest/insight/1.0/iql/objects?objectSchemaId=${InsightConfig.schemaId}&iql=objectType=$objectTypeName and $iql&includeTypeAttributes=true&page=$page&resultPerPage=$resultsPerPage")
+            }.toValues(objectType)
+        }
     }
 
     fun createEmptyObject(objectTypeName: String): MyInsightEntry {
@@ -87,7 +139,7 @@ object ObjectOperator {
                     it.attributeId,
                     values
                 )
-    }
+            }
 
     private fun MyInsightEntry.getEditValues(): List<ObjectEditItemAttribute> =
         this.attributes
@@ -105,7 +157,7 @@ object ObjectOperator {
             }
 
     private fun MyInsightEntry.isSelectField(attributeName: String): Boolean =
-        this.getAttributeType(attributeName)?.takeIf { it == "Select" }?.let { true }?:false
+        this.getAttributeType(attributeName)?.takeIf { it == "Select" }?.let { true } ?: false
 
     suspend fun updateObject(obj: MyInsightEntry): MyInsightEntry {
         val schema = InsightConfig.objectSchemas.first { it.id == obj.typeId }
