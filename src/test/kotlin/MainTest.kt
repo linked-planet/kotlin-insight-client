@@ -1,48 +1,23 @@
 import com.linkedplanet.kotlinInsightWrapper.*
-import junit.framework.TestCase
+import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.runBlocking
+import org.junit.BeforeClass
 import org.junit.Test
 import java.io.File
 import java.security.MessageDigest
 
 
-class MainTest : TestCase() {
-    enum class OBJECTS {
-        Company,
-        Country,
-        TestWithLists,
-        SimpleObject,
-        Many
+class MainTest {
+
+    companion object {
+        @BeforeClass
+        @JvmStatic
+        fun setUp() {
+            println("#### Starting setUp")
+            InsightConfig.init("http://localhost:8080", 1, "admin", "admin")
+        }
     }
 
-    enum class MANY {
-        Name
-    }
-
-    enum class COMPANY {
-        Name,
-        Country
-    }
-
-    enum class COUNTRY {
-        Name,
-        Key,
-        ShortName
-    }
-
-    enum class TEST_WITH_LISTS {
-        ItemList
-    }
-
-    enum class SIMPLE_OBJECT {
-        Firstname,
-    }
-
-    override fun setUp() {
-        super.setUp()
-        println("#### Starting setUp")
-        InsightConfig.init("http://localhost:8080", 1, "admin", "admin")
-    }
 
     @Test
     fun testObjectsPaginationSize() {

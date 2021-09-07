@@ -2,6 +2,7 @@ package com.linkedplanet.kotlinInsightWrapper
 
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonParser
+import com.linkedplanet.kotlinInsightWrapper.InsightConfig.getObjectSchema
 import io.ktor.client.request.*
 import io.ktor.http.*
 
@@ -22,7 +23,7 @@ object ObjectOperator {
     }
 
     suspend fun getObjects(objectTypeName: String, page: Int = -1, resultsPerPage: Int = 25): List<MyInsightEntry> {
-        val objectType = InsightConfig.objectSchemas.first { it.name == objectTypeName }
+        val objectType = getObjectSchema(objectTypeName)
         return if (page < 0) {
             var resultList = emptyList<MyInsightEntry>()
             var index = 1
@@ -47,7 +48,7 @@ object ObjectOperator {
     }
 
     suspend fun getObject(objectTypeName: String, id: Int): MyInsightEntry? {
-        val objectType = InsightConfig.objectSchemas.first { it.name == objectTypeName }
+        val objectType = getObjectSchema(objectTypeName)
         return InsightConfig.httpClient.get<InsightObjectEntries> {
             url("${InsightConfig.baseUrl}/rest/insight/1.0/iql/objects?objectSchemaId=${InsightConfig.schemaId}&iql=objectType=\"$objectTypeName\" and objectId=$id&includeTypeAttributes=true")
         }.objectEntries.firstOrNull()?.toValue(objectType)
@@ -57,7 +58,7 @@ object ObjectOperator {
         objectTypeName: String,
         name: String
     ): MyInsightEntry? {
-        val objectType = InsightConfig.objectSchemas.first { it.name == objectTypeName }
+        val objectType = getObjectSchema(objectTypeName)
         return InsightConfig.httpClient.get<InsightObjectEntries> {
             url("${InsightConfig.baseUrl}/rest/insight/1.0/iql/objects?objectSchemaId=${InsightConfig.schemaId}&iql=objectType=\"$objectTypeName\" and Name=\"$name\"&includeTypeAttributes=true")
         }.objectEntries.firstOrNull()?.toValue(objectType)
@@ -69,7 +70,7 @@ object ObjectOperator {
         page: Int = -1,
         resultsPerPage: Int = 25
     ): List<MyInsightEntry> {
-        val objectType = InsightConfig.objectSchemas.first { it.name == objectTypeName }
+        val objectType = getObjectSchema(objectTypeName)
         return if (page < 0) {
             var resultList = emptyList<MyInsightEntry>()
             var index = 1
@@ -94,7 +95,7 @@ object ObjectOperator {
     }
 
     fun createEmptyObject(objectTypeName: String): MyInsightEntry {
-        val schema = InsightConfig.objectSchemas.filter { it.name == objectTypeName }.first()
+        val schema = getObjectSchema(objectTypeName)
         val attributes = schema.attributes.map {
             MyInsightAttribute(
                 it.id,
@@ -110,7 +111,7 @@ object ObjectOperator {
     }
 
     suspend fun createObject(obj: MyInsightEntry): MyInsightEntry {
-        val schema = InsightConfig.objectSchemas.first { it.id == obj.typeId }
+        val schema = getObjectSchema(obj.typeId)
         val objRefEditAttributes = obj.getEditReferences()
         val objEditAttributes = obj.getEditValues()
         val editItem = ObjectEditItem(
@@ -160,7 +161,7 @@ object ObjectOperator {
         this.getAttributeType(attributeName)?.takeIf { it == "Select" }?.let { true } ?: false
 
     suspend fun updateObject(obj: MyInsightEntry): MyInsightEntry {
-        val schema = InsightConfig.objectSchemas.first { it.id == obj.typeId }
+        val schema = getObjectSchema(obj.typeId)
         val objRefEditAttributes = obj.getEditReferences()
         val objEditAttributes = obj.getEditValues()
         val editItem = ObjectEditItem(

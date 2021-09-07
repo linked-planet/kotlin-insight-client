@@ -1,5 +1,6 @@
 package com.linkedplanet.kotlinInsightWrapper
 
+import com.linkedplanet.kotlinInsightWrapper.InsightConfig.getObjectSchema
 import org.joda.time.DateTime
 import java.util.Collections.emptyList
 
@@ -21,7 +22,7 @@ fun MyInsightEntry.getAttributeNames(): List<ObjectTypeSchemaAttribute> {
 }
 
 fun MyInsightEntry.getAttributeType(name: String): String? {
-    val schema = InsightConfig.objectSchemas.first { it.id == this.typeId }
+    val schema = getObjectSchema(this.typeId)
     return schema.attributes.firstOrNull { it.name == name }?.defaultType?.name
 }
 
@@ -84,7 +85,7 @@ fun MyInsightEntry.removeValue(name: String, value: Any?) {
 }
 
 private fun MyInsightEntry.createAttribute(name: String) {
-    val schema = InsightConfig.objectSchemas.first { it.id == this.typeId }
+    val schema = getObjectSchema(this.typeId)
     val attribute = schema.attributes.firstOrNull { it.name == name }
     if (attribute != null) {
         this.attributes = this.attributes + MyInsightAttribute(
