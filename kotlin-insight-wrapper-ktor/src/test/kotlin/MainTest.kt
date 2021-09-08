@@ -1,84 +1,171 @@
+import com.linkedplanet.kotlinInsightWrapper.*
 import com.linkedplanet.kotlininsightwrapper.core.*
-import com.linkedplanet.kotlininsightwrapper.ktor.*
-import junit.framework.TestCase
+import com.linkedplanet.kotlininsightwrapper.ktor.KtorHttpClient
+import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.runBlocking
+import org.junit.BeforeClass
+import org.junit.Test
 import java.io.File
 import java.security.MessageDigest
 
-class MainTest : TestCase() {
-    enum class OBJECTS {
-        Company,
-        Country,
-        TestWithLists,
-        SimpleObject
+
+class MainTest {
+
+    companion object {
+        @BeforeClass
+        @JvmStatic
+        fun setUp() {
+            println("#### Starting setUp")
+            val httpClient = KtorHttpClient(
+                "http://localhost:8080",
+                "admin",
+                "admin"
+            )
+            InsightConfig.init("http://localhost:8080", 1, httpClient)
+        }
     }
 
-    enum class COMPANY {
-        Name,
-        Country
+
+    @Test
+    fun testObjectsPaginationSize() {
+        val manySize = runBlocking {
+            ObjectOperator.getObjectPages(OBJECTS.Many.name)
+        }
+        assertTrue(manySize == 3)
+
+        val manySize2 = runBlocking {
+            ObjectOperator.getObjectPages(OBJECTS.Many.name, 50)
+        }
+        assertTrue(manySize2 == 2)
+
+        val manySize3 = runBlocking {
+            ObjectOperator.getObjectPages(OBJECTS.Many.name, 100)
+        }
+        assertTrue(manySize3 == 1)
     }
 
-    enum class COUNTRY {
-        Name,
-        Key,
-        ShortName
+    @Test
+    fun testIQLPaginationSize() {
+        val manySize = runBlocking {
+            ObjectOperator.getObjectIqlPages(OBJECTS.Many.name, "Name is not empty")
+        }
+        assertTrue(manySize == 3)
+
+        val manySize2 = runBlocking {
+            ObjectOperator.getObjectIqlPages(OBJECTS.Many.name, "Name is not empty", 50)
+        }
+        assertTrue(manySize2 == 2)
+
+        val manySize3 = runBlocking {
+            ObjectOperator.getObjectIqlPages(OBJECTS.Many.name, "Name is not empty", 100)
+        }
+        assertTrue(manySize3 == 1)
     }
 
-    enum class TEST_WITH_LISTS {
-        ItemList
+    @Test
+    fun testObjectsWithPaginationAllInOne() {
+        val many = runBlocking {
+            ObjectOperator.getObjects(1, OBJECTS.Many.name)
+        }
+        assertTrue(many.size == 55)
     }
 
-    enum class SIMPLE_OBJECT {
-        Firstname,
+    @Test
+    fun testIQLWithPaginationAllInOne() {
+        val many = runBlocking {
+            ObjectOperator.getObjectsByIQL(1, OBJECTS.Many.name, "Name is not empty")
+        }
+        assertTrue(many.size == 55)
     }
 
-    override fun setUp() {
-        super.setUp()
-        println("#### Starting setUp")
-        InsightConfig.init("http://localhost:8080", 1, "admin", "admin")
+    @Test
+    fun testObjectsWithPaginationPages() {
+        val manyPage1 = runBlocking {
+            ObjectOperator.getObjects(1, OBJECTS.Many.name, 1)
+        }
+        val valuesPageOne = manyPage1.map { it.getStringValue("Name")!!.toInt() }
+        listOf(1,10,11,12,13,14,15,16,17,18,19,2,20,21,22,23,24,25,26,27,28,29,3,30,31).forEach {
+            assertTrue(valuesPageOne.contains(it))
+        }
+        assertTrue(manyPage1.size == 25)
+
+        val manyPage2 = runBlocking {
+            ObjectOperator.getObjects(1, OBJECTS.Many.name, 2, 26)
+        }
+        val valuesPage2 = manyPage2.map { it.getStringValue("Name")!!.toInt() }
+        listOf(33,34,35,36,37,38,39,4,40,41,42,43,44,45,46,47,48,49,5,50,51,52,53,54,55, 6).forEach {
+            assertTrue(valuesPage2.contains(it))
+        }
+        assertTrue(manyPage2.size == 26)
     }
 
+    @Test
+    fun testIQLWithPaginationPages() {
+        val manyPage1 = runBlocking {
+            ObjectOperator.getObjectsByIQL(1, OBJECTS.Many.name, "Name is not empty", 1)
+        }
+        val valuesPageOne = manyPage1.map { it.getStringValue("Name")!!.toInt() }
+        listOf(1,10,11,12,13,14,15,16,17,18,19,2,20,21,22,23,24,25,26,27,28,29,3,30,31).forEach {
+            assertTrue(valuesPageOne.contains(it))
+        }
+        assertTrue(manyPage1.size == 25)
+
+        val manyPage2 = runBlocking {
+            ObjectOperator.getObjectsByIQL(1, OBJECTS.Many.name, "Name is not empty", 2, 26)
+        }
+        val valuesPage2 = manyPage2.map { it.getStringValue("Name")!!.toInt() }
+        listOf(33,34,35,36,37,38,39,4,40,41,42,43,44,45,46,47,48,49,5,50,51,52,53,54,55, 6).forEach {
+            assertTrue(valuesPage2.contains(it))
+        }
+        assertTrue(manyPage2.size == 26)
+    }
+
+    @Test
     fun testObjectListWithFlatReference() {
         val companies = runBlocking {
-            KtorObjectOperator.getObjects(OBJECTS.Company.name)
+            ObjectOperator.getObjects(1, OBJECTS.Company.name)
         }
-        assertEquals(1, companies.size)
+        assertTrue(companies.size == 1)
         val company = companies.first()
-        assertEquals(1, company.id)
-        assertEquals("Test GmbH", company.getStringValue(COMPANY.Name.name))
-        assertEquals("Germany", company.getSingleReference(COMPANY.Country.name)!!.objectName)
+        assertTrue(company.id == 1)
+        assertTrue(company.getStringValue(COMPANY.Name.name) == "Test GmbH")
+        assertTrue(company.getSingleReference(COMPANY.Country.name)!!.objectName == "Germany")
     }
 
+    @Test
     fun testObjectListWithResolvedReference() {
         val companies = runBlocking {
-            KtorObjectOperator.getObjects(OBJECTS.Company.name)
+            ObjectOperator.getObjects(1, OBJECTS.Company.name)
         }
-        assertEquals(1, companies.size)
+        assertTrue(companies.size == 1)
         val company = companies.first()
         val country = runBlocking {
-            KtorObjectOperator.getObject(
+            ObjectOperator.getObject(
+                1,
                 OBJECTS.Country.name,
                 company.getSingleReference(COMPANY.Country.name)!!.objectId
             )!!
         }
-        assertEquals(1, company.id)
-        assertEquals("Test GmbH", company.getStringValue(COMPANY.Name.name))
-        assertEquals("Germany", country.getStringValue(COUNTRY.Name.name))
-        assertEquals("DE", country.getStringValue(COUNTRY.ShortName.name))
+        assertTrue(company.id == 1)
+        assertTrue(company.getStringValue(COMPANY.Name.name) == "Test GmbH")
+        assertTrue(country.getStringValue(COUNTRY.Name.name) == "Germany")
+        assertTrue(country.getStringValue(COUNTRY.ShortName.name) == "DE")
     }
 
+    @Test
     fun testObjectById() {
         val company = runBlocking {
-            KtorObjectOperator.getObject(OBJECTS.Company.name, 1)!!
+            ObjectOperator.getObject(1, OBJECTS.Company.name, 1)!!
         }
-        assertEquals(1, company.id)
-        assertEquals("Test GmbH", company.getStringValue(COMPANY.Name.name))
-        assertEquals("Germany", company.getSingleReference(COMPANY.Country.name)!!.objectName)
+        assertTrue(company.id == 1)
+        assertTrue(company.getStringValue(COMPANY.Name.name) == "Test GmbH")
+        assertTrue(company.getSingleReference(COMPANY.Country.name)!!.objectName == "Germany")
     }
 
+    @Test
     fun testObjectWithListAttributes() {
         val obj = runBlocking {
-            KtorObjectOperator.getObjects(OBJECTS.TestWithLists.name)
+            ObjectOperator.getObjects(1, OBJECTS.TestWithLists.name)
         }.first()
 
         val references = obj.getMultiReference(TEST_WITH_LISTS.ItemList.name)
@@ -86,78 +173,81 @@ class MainTest : TestCase() {
         val nameList = references.map { it.objectName }
         val refList = references.map { insightReference ->
             runBlocking {
-                KtorObjectOperator.getObject(OBJECTS.SimpleObject.name, insightReference.objectId)!!
+                ObjectOperator.getObject(1, OBJECTS.SimpleObject.name, insightReference.objectId)!!
             }
         }
         val firstNameList = refList.map { it.getStringValue(SIMPLE_OBJECT.Firstname.name) }
 
-        assertEquals(listOf(35, 36, 37), idList)
-        assertEquals(listOf("Object1", "Object2", "Object3"), nameList)
-        assertEquals(listOf("F1", "F2", "F3"), firstNameList)
+        assertTrue(idList == listOf(35, 36, 37))
+        assertTrue(nameList == listOf("Object1", "Object2", "Object3"))
+        assertTrue(firstNameList == listOf("F1", "F2", "F3"))
+        println("")
     }
 
-    fun testAddingSelectList() {
-        val obj1 = runBlocking {
-            KtorObjectOperator.getObjects(OBJECTS.TestWithLists.name)
+    @Test
+    fun testAddingSelectList(){
+        val obj = runBlocking {
+            ObjectOperator.getObjects(1, OBJECTS.TestWithLists.name)
         }.first()
-        val results = obj1.getValueList("StringList")
+        val results = obj.getValueList("StringList")
         assertTrue(results.isEmpty())
-        obj1.addValue("StringList", "A")
-        obj1.addValue("StringList", "B")
-        runBlocking { KtorObjectOperator.updateObject(obj1) }
+        obj.addValue("StringList", "A")
+        obj.addValue("StringList", "B")
+        runBlocking { ObjectOperator.updateObject(1, obj) }
 
         val obj2 = runBlocking {
-            KtorObjectOperator.getObjects(OBJECTS.TestWithLists.name)
+            ObjectOperator.getObjects(1, OBJECTS.TestWithLists.name)
         }.first()
         val results2 = obj2.getValueList("StringList")
-        assertEquals(2, results2.size)
+        assertTrue(results2.size == 2)
         assertTrue(results2.contains("A"))
         assertTrue(results2.contains("B"))
         obj2.removeValue("StringList", "B")
-        runBlocking { KtorObjectOperator.updateObject(obj2) }
+        runBlocking { ObjectOperator.updateObject(1, obj2) }
 
         val obj3 = runBlocking {
-            KtorObjectOperator.getObjects(OBJECTS.TestWithLists.name)
+            ObjectOperator.getObjects(1, OBJECTS.TestWithLists.name)
         }.first()
         val results3 = obj3.getValueList("StringList")
-        assertEquals(1, results3.size)
+        assertTrue(results3.size == 1)
         assertTrue(results3.contains("A"))
         obj3.removeValue("StringList", "A")
-        runBlocking { KtorObjectOperator.updateObject(obj3) }
+        runBlocking { ObjectOperator.updateObject(1, obj3) }
 
         val obj4 = runBlocking {
-            KtorObjectOperator.getObjects(OBJECTS.TestWithLists.name)
+            ObjectOperator.getObjects(1, OBJECTS.TestWithLists.name)
         }.first()
         val results4 = obj4.getValueList("StringList")
         assertTrue(results4.isEmpty())
     }
 
+    @Test
     fun testSchemaLoad() {
         val mySchemas = runBlocking {
-            SchemaOperator.loadSchema()
+            ObjectTypeOperator.loadAllObjectTypeSchemas()
         }
-        assertNotNull(mySchemas)
-        assertTrue(mySchemas.isNotEmpty())
+        val schemas = mySchemas
     }
 
+    @Test
     fun testCreateAndDelete() {
         runBlocking {
             // Check England does not exist
-            val countryBeforeCreate = KtorObjectOperator.getObjectByName(OBJECTS.Company.name, "England")
-            val companyBeforeCreate = KtorObjectOperator.getObjectByName(OBJECTS.Company.name, "MyTestCompany GmbH")
-            assertNull(countryBeforeCreate)
-            assertNull(companyBeforeCreate)
+            val countryBeforeCreate = ObjectOperator.getObjectByName(1, OBJECTS.Company.name, "England")
+            val companyBeforeCreate = ObjectOperator.getObjectByName(1, OBJECTS.Company.name, "MyTestCompany GmbH")
+            assertTrue(countryBeforeCreate == null)
+            assertTrue(companyBeforeCreate == null)
 
             // Create and check direct result
-            var country1 = KtorObjectOperator.createEmptyObject(OBJECTS.Country.name)
+            var country1 = ObjectOperator.createEmptyObject(1, OBJECTS.Country.name)
             country1.setStringValue(COUNTRY.Name.name, "England")
             country1.setStringValue(COUNTRY.ShortName.name, "GB")
-            country1 = KtorObjectOperator.createObject(country1)
+            country1 = ObjectOperator.createObject(1, country1)
 
-            var company1 = KtorObjectOperator.createEmptyObject(OBJECTS.Company.name)
+            var company1 = ObjectOperator.createEmptyObject(1, OBJECTS.Company.name)
             company1.setStringValue(COMPANY.Name.name, "MyTestCompany GmbH")
             company1.setSingleReference(COMPANY.Country.name, country1.id)
-            company1 = KtorObjectOperator.createObject(company1)
+            company1 = ObjectOperator.createObject(1, company1)
 
             assertTrue(country1.id > 0)
             assertTrue(country1.getStringValue(COUNTRY.Key.name)!!.isNotBlank())
@@ -166,96 +256,90 @@ class MainTest : TestCase() {
 
             // Check England does exists
             val countryReference = company1.getSingleReference(COMPANY.Country.name)!!
-            val countryAfterCreate = KtorObjectOperator.getObjectByName(OBJECTS.Country.name, "England")!!
-            val companyAfterCreate = KtorObjectOperator.getObjectByName(OBJECTS.Company.name, "MyTestCompany GmbH")!!
-            assertEquals(countryReference.objectId, countryAfterCreate.id)
-            assertEquals(countryReference.objectKey, countryAfterCreate.getStringValue(COUNTRY.Key.name))
-            assertEquals(countryReference.objectName, countryAfterCreate.getStringValue(COUNTRY.Name.name))
-            assertEquals(company1.id, companyAfterCreate.id)
+            val countryAfterCreate = ObjectOperator.getObjectByName(1, OBJECTS.Country.name, "England")!!
+            val companyAfterCreate = ObjectOperator.getObjectByName(1, OBJECTS.Company.name, "MyTestCompany GmbH")!!
+            assertTrue(countryAfterCreate.id == countryReference.objectId)
+            assertTrue(countryAfterCreate.getStringValue(COUNTRY.Key.name) == countryReference.objectKey)
+            assertTrue(countryAfterCreate.getStringValue(COUNTRY.Name.name) == countryReference.objectName)
+            assertTrue(companyAfterCreate.id == company1.id)
 
             // Check Delete
-            KtorObjectOperator.deleteObject(countryReference.objectId)
-            KtorObjectOperator.deleteObject(company1.id)
-            val companyAfterDelete =
-                KtorObjectOperator.getObjectByName(OBJECTS.Company.name, company1.getStringValue(COMPANY.Name.name)!!)
-            val countryAfterDelete =
-                KtorObjectOperator.getObjectByName(OBJECTS.Country.name, company1.getStringValue(COUNTRY.Name.name)!!)
-            assertNull(companyAfterDelete)
-            assertNull(countryAfterDelete)
+            ObjectOperator.deleteObject(countryReference.objectId)
+            ObjectOperator.deleteObject(company1.id)
+            val companyAfterDelete = ObjectOperator.getObjectByName(1, OBJECTS.Company.name, company1.getStringValue(COMPANY.Name.name)!!)
+            val countryAfterDelete = ObjectOperator.getObjectByName(1, OBJECTS.Country.name, company1.getStringValue(COUNTRY.Name.name)!!)
+            assertTrue(companyAfterDelete == null)
+            assertTrue(countryAfterDelete == null)
         }
     }
 
+    @Test
     fun testFilter() {
         runBlocking {
-            val countries = KtorObjectOperator.getObjectsByIQL(OBJECTS.Country.name, "\"ShortName\"=\"DE\"")
-            assertEquals(1, countries.size)
-            assertEquals("DE", countries.first().getStringValue(COUNTRY.ShortName.name))
-            assertEquals("Germany", countries.first().getStringValue(COUNTRY.Name.name))
+            val countries = ObjectOperator.getObjectsByIQL(1, OBJECTS.Country.name, "\"ShortName\"=\"DE\"")!!
+            assertTrue(countries.size == 1)
+            assertTrue(countries.first().getStringValue(COUNTRY.ShortName.name) == "DE")
+            assertTrue(countries.first().getStringValue(COUNTRY.Name.name) == "Germany")
         }
     }
 
+    @Test
     fun testUpdate() {
         runBlocking {
-            var country = KtorObjectOperator.getObjectByName(OBJECTS.Country.name, "Germany")!!
-            assertEquals("Germany", country.getStringValue(COUNTRY.Name.name))
-            assertEquals("DE", country.getStringValue(COUNTRY.ShortName.name))
+            var country = ObjectOperator.getObjectByName(1, OBJECTS.Country.name, "Germany")!!
+            assertTrue(country.getStringValue(COUNTRY.Name.name) == "Germany")
+            assertTrue(country.getStringValue(COUNTRY.ShortName.name) == "DE")
             country.setStringValue(COUNTRY.ShortName.name, "ED")
-            country = KtorObjectOperator.updateObject(country)
-            assertEquals("Germany", country.getStringValue(COUNTRY.Name.name))
-            assertEquals("ED", country.getStringValue(COUNTRY.ShortName.name))
+            country = ObjectOperator.updateObject(1, country)
 
-            val country2 = KtorObjectOperator.getObjectByName(OBJECTS.Country.name, "Germany")!!
-            assertEquals("Germany", country2.getStringValue(COUNTRY.Name.name))
-            assertEquals("ED", country2.getStringValue(COUNTRY.ShortName.name))
+            val country2 = ObjectOperator.getObjectByName(1, OBJECTS.Country.name, "Germany")!!
+            assertTrue(country2.getStringValue(COUNTRY.Name.name) == "Germany")
+            assertTrue(country2.getStringValue(COUNTRY.ShortName.name) == "ED")
 
-            var countryAfterUpdate = KtorObjectOperator.getObjectByName(OBJECTS.Country.name, "Germany")!!
-            assertEquals("Germany", countryAfterUpdate.getStringValue(COUNTRY.Name.name))
-            assertEquals("ED", countryAfterUpdate.getStringValue(COUNTRY.ShortName.name))
+            var countryAfterUpdate = ObjectOperator.getObjectByName(1, OBJECTS.Country.name, "Germany")!!
+            assertTrue(countryAfterUpdate.getStringValue(COUNTRY.Name.name) == "Germany")
+            assertTrue(countryAfterUpdate.getStringValue(COUNTRY.ShortName.name) == "ED")
             countryAfterUpdate.setStringValue(COUNTRY.ShortName.name, "DE")
-            countryAfterUpdate = KtorObjectOperator.updateObject(countryAfterUpdate)
-            assertEquals("Germany", countryAfterUpdate.getStringValue(COUNTRY.Name.name))
-            assertEquals("DE", countryAfterUpdate.getStringValue(COUNTRY.ShortName.name))
+            countryAfterUpdate = ObjectOperator.updateObject(1, countryAfterUpdate)
 
-            val countryAfterReUpdate = KtorObjectOperator.getObjectByName(OBJECTS.Country.name, "Germany")!!
-            assertEquals("Germany", countryAfterReUpdate.getStringValue(COUNTRY.Name.name))
-            assertEquals("DE", countryAfterReUpdate.getStringValue(COUNTRY.ShortName.name))
+            val countryAfterReUpdate = ObjectOperator.getObjectByName(1, OBJECTS.Country.name, "Germany")!!
+            assertTrue(countryAfterReUpdate.getStringValue(COUNTRY.Name.name) == "Germany")
+            assertTrue(countryAfterReUpdate.getStringValue(COUNTRY.ShortName.name) == "DE")
         }
     }
 
+    @Test
     fun testHistory() {
         runBlocking {
-            val country = KtorObjectOperator.getObjectByName(OBJECTS.Country.name, "Germany")!!
-            val historyItems = KtorHistoryOperator.getHistory(country.id)
+            val country = ObjectOperator.getObjectByName(1, OBJECTS.Country.name, "Germany")!!
+            val historyItems = HistoryOperator.getHistory(country.id)
             assertTrue(historyItems.isNotEmpty())
         }
     }
 
+    /*
+    @Test
     fun testAttachments() {
         runBlocking {
-            val country = KtorObjectOperator.getObjectByName(OBJECTS.Country.name, "Germany")!!
+            val country = ObjectOperator.getObjectByName(1, OBJECTS.Country.name, "Germany")!!
             val uploadFile = File(MainTest::class.java.getResource("TestAttachment.pdf").file)
-            val newAttachment =
-                KtorAttachmentOperator.uploadAttachment(
-                    country.id,
-                    uploadFile.name,
-                    uploadFile.readBytes(),
-                    "MyComment"
-                )
-            val attachments = KtorAttachmentOperator.getAttachments(country.id)
-            assertEquals(1, attachments.size)
-            assertEquals(attachments.first().author, newAttachment.first().author)
-            assertEquals(attachments.first().comment, newAttachment.first().comment)
-            assertEquals(attachments.first().filename, newAttachment.first().filename)
-            assertEquals(attachments.first().filesize, newAttachment.first().filesize)
+            val newAttachment = AttachmentOperator.uploadAttachment(country.id, uploadFile.name, uploadFile.readBytes(), "MyComment")
+            val attachments = AttachmentOperator.getAttachments(country.id)
+            assertTrue(attachments.size == 1)
+            assertTrue(newAttachment.first().author == attachments.first().author)
+            assertTrue(newAttachment.first().comment == attachments.first().comment)
+            assertTrue(newAttachment.first().filename == attachments.first().filename)
+            assertTrue(newAttachment.first().filesize == attachments.first().filesize)
 
             val downloadContent = attachments.first().getBytes()
             val md5Hash =
                 MessageDigest.getInstance("MD5").digest(downloadContent).joinToString("") { "%02x".format(it) }
             assertTrue(md5Hash == "3c2f34b03f483bee145a442a4574ca26")
 
-            newAttachment.first().delete()
-            val attachmentsAfterDelete = KtorAttachmentOperator.getAttachments(country.id)
+            val deleted = newAttachment.first().delete()
+            val attachmentsAfterDelete = AttachmentOperator.getAttachments(country.id)
             assertTrue(attachmentsAfterDelete.isEmpty())
         }
     }
+     */
 }
