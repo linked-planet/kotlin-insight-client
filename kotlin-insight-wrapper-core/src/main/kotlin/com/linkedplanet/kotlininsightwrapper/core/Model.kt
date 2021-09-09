@@ -19,7 +19,6 @@
  */
 package com.linkedplanet.kotlininsightwrapper.core
 
-import com.linkedplanet.kotlinInsightWrapper.AttachmentOperator
 import org.joda.time.DateTime
 import java.util.Collections.emptyList
 

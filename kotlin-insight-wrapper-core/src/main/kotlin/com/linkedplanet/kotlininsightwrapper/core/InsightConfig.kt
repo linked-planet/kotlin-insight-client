@@ -1,7 +1,5 @@
 package com.linkedplanet.kotlininsightwrapper.core
 
-import com.linkedplanet.kotlinInsightWrapper.ObjectSchemaIdException
-import com.linkedplanet.kotlinInsightWrapper.ObjectSchemaNameException
 import kotlinx.coroutines.runBlocking
 
 object InsightConfig {

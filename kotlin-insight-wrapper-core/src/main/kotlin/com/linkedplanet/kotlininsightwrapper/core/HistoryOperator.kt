@@ -1,4 +1,4 @@
-package com.linkedplanet.kotlinInsightWrapper
+package com.linkedplanet.kotlininsightwrapper.core
 
 import com.google.gson.reflect.TypeToken
 import com.linkedplanet.kotlininsightwrapper.core.InsightConfig

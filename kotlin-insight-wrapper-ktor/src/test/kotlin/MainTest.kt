@@ -1,12 +1,9 @@
-import com.linkedplanet.kotlinInsightWrapper.*
 import com.linkedplanet.kotlininsightwrapper.core.*
 import com.linkedplanet.kotlininsightwrapper.ktor.KtorHttpClient
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.runBlocking
 import org.junit.BeforeClass
 import org.junit.Test
-import java.io.File
-import java.security.MessageDigest
 
 
 class MainTest {

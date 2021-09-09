@@ -1,4 +1,4 @@
-package com.linkedplanet.kotlinInsightWrapper
+package com.linkedplanet.kotlininsightwrapper.core
 
 import java.lang.RuntimeException
 
