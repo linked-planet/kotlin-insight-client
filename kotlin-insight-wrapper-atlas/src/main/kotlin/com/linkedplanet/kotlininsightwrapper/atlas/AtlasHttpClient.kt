@@ -50,7 +50,7 @@ class AtlasHttpClient(private val appLink: ApplicationLink) : BaseHttpClient() {
                 }
             })
         } catch (e: ResponseException) {
-            throw Exception("Jira/Insight hat ein internes Problem festgestellt")
+            throw Exception("Jira/Insight hat ein internes Problem festgestellt", e)
         }
     }
 

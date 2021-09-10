@@ -16,3 +16,5 @@ jobs:
         run: ./scripts/waitingForJira.sh
       - name: Build and Test library
         run: ./gradlew test --info
+      - name: Build and Test confluence library
+        run: mvn clean -f kotlin-insight-wrapper-atlas-test/pom.xml -B verify -Dbaseurl=http://localhost:1990
