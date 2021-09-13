@@ -134,6 +134,12 @@
         </dependency>
         <dependency>
             <groupId>com.linkedplanet</groupId>
+            <artifactId>kotlin-insight-wrapper-test-base</artifactId>
+            <version>1.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.linkedplanet</groupId>
             <artifactId>kotlin-insight-wrapper-atlas</artifactId>
             <version>1.0</version>
         </dependency>

@@ -6,10 +6,10 @@ import com.atlassian.confluence.user.AuthenticatedUserThreadLocal
 import com.atlassian.confluence.user.UserAccessor
 import com.atlassian.plugins.osgi.test.AtlassianPluginsTestRunner
 import com.atlassian.sal.api.ApplicationProperties
+import com.linkedplanet.kotlininsightwrapper.AbstractMainTest
 import com.linkedplanet.kotlininsightwrapper.atlas.AtlasHttpClient
 import com.linkedplanet.kotlininsightwrapper.core.InsightConfig
 import com.linkedplanet.kotlininsightwrapper.core.ObjectOperator
-import it.OBJECTS
 import junit.framework.TestCase
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
@@ -17,7 +17,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AtlassianPluginsTestRunner::class)
-class MainWiredTest {
+class MainWiredTest: AbstractMainTest {
 
     private lateinit var userAccessor: UserAccessor
     private lateinit var applicationProperties: ApplicationProperties
@@ -47,26 +47,6 @@ class MainWiredTest {
     fun initTest() {
         val serviceUser = userAccessor.getUserByName("admin")
         AuthenticatedUserThreadLocal.asUser(serviceUser)
-    }
-
-    @Test
-    fun testObjectsPaginationSize() {
-        println("### testObjectsPaginationSize")
-        val manySize = runBlocking {
-            ObjectOperator.getObjectPages(OBJECTS.Many.name)
-        }
-        TestCase.assertTrue(manySize == 3)
-
-        val manySize2 = runBlocking {
-            ObjectOperator.getObjectPages(OBJECTS.Many.name, 50)
-        }
-        TestCase.assertTrue(manySize2 == 2)
-
-        val manySize3 = runBlocking {
-            ObjectOperator.getObjectPages(OBJECTS.Many.name, 100)
-        }
-        TestCase.assertTrue(manySize3 == 1)
-        println("### END testObjectsPaginationSize")
     }
 
 }

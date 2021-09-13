@@ -1,3 +1,5 @@
+package com.linkedplanet.kotlininsightwrapper
+
 enum class OBJECTS {
     Company,
     Country,
