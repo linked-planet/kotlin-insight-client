@@ -1,11 +1,11 @@
 plugins {
-    id "org.jetbrains.kotlin.jvm" version "1.3.41" apply(false)
+    id "org.jetbrains.kotlin.jvm" version "1.4.21" apply(false)
 }
 
 println "Running gradle version: $gradle.gradleVersion"
 
 allprojects {
-    ext.kotlin_version = "1.3.41"
+    ext.kotlin_version = "1.4.21"
 
     group "com.linkedplanet"
     version "1.0"

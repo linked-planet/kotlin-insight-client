@@ -129,6 +129,11 @@
         </dependency>
         <dependency>
             <groupId>com.linkedplanet</groupId>
+            <artifactId>kotlin-insight-wrapper-api</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.linkedplanet</groupId>
             <artifactId>kotlin-insight-wrapper-core</artifactId>
             <version>1.0</version>
         </dependency>

@@ -1,5 +1,7 @@
 import com.linkedplanet.kotlininsightwrapper.AbstractMainTest
-import com.linkedplanet.kotlininsightwrapper.core.*
+import com.linkedplanet.kotlininsightwrapper.api.http.InsightConfig
+import com.linkedplanet.kotlininsightwrapper.core.InsightSchemaCacheOperator
+import com.linkedplanet.kotlininsightwrapper.core.InsightSchemaOperator
 import com.linkedplanet.kotlininsightwrapper.ktor.KtorHttpClient
 import org.junit.BeforeClass
 
@@ -16,7 +18,7 @@ class MainTest: AbstractMainTest() {
                 "admin",
                 "admin"
             )
-            InsightConfig.init("http://localhost:8080", 1, httpClient)
+            InsightConfig.init("http://localhost:8080", httpClient, InsightSchemaCacheOperator)
         }
     }
 }

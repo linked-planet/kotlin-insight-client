@@ -19,18 +19,23 @@
  */
 package com.linkedplanet.kotlininsightwrapper.core
 
+import arrow.core.Either
 import com.google.gson.reflect.TypeToken
+import com.linkedplanet.kotlininsightwrapper.api.http.InsightConfig
+import com.linkedplanet.kotlininsightwrapper.api.model.InsightSchemas
+import com.linkedplanet.kotlininsightwrapper.api.error.DomainError
+import com.linkedplanet.kotlininsightwrapper.api.interfaces.InsightSchemaOperatorInterface
 
-object InsightSchemaOperator {
+object InsightSchemaOperator: InsightSchemaOperatorInterface {
 
-    suspend fun getSchemas(): InsightSchemas =
-        InsightConfig.httpClient.executeRest(
+    override suspend fun getSchemas(): Either<DomainError, InsightSchemas> =
+        InsightConfig.httpClient.executeRest<InsightSchemas>(
             "GET",
-            "rest/insight/1.0/objectschema/list",
+            "/rest/insight/1.0/objectschema/list",
             emptyMap(),
             null,
             "application/json",
             object : TypeToken<InsightSchemas>() {}.type
-        )!!
+        ).map { it!! }
 
 }

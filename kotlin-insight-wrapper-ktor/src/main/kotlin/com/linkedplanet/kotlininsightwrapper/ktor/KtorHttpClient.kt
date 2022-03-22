@@ -1,7 +1,12 @@
 package com.linkedplanet.kotlininsightwrapper.ktor
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import com.google.gson.JsonParser
-import com.linkedplanet.kotlininsightwrapper.core.BaseHttpClient
+import com.linkedplanet.kotlininsightwrapper.api.http.BaseHttpClient
+import com.linkedplanet.kotlininsightwrapper.api.error.DomainError
+import com.linkedplanet.kotlininsightwrapper.api.http.InsightConfig
 import io.ktor.client.*
 import io.ktor.client.engine.apache.*
 import io.ktor.client.features.auth.basic.*
@@ -9,6 +14,7 @@ import io.ktor.client.features.json.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.http.*
+import io.ktor.util.*
 import java.lang.RuntimeException
 
 fun httpClient(username: String, password: String) =
@@ -52,30 +58,30 @@ class KtorHttpClient(
         bodyIn: String?,
         contentType: String?,
         headers: Map<String, String>
-    ): String {
+    ): Either<DomainError, String> {
         return when (method) {
             "GET" ->  {
-                httpClient.get {
+                httpClient.get<String> {
                     prepareRequest(this, path, params, bodyIn, contentType)
-                }
+                }.right()
             }
             "POST" -> {
-                httpClient.post {
+                httpClient.post<String> {
                     prepareRequest(this, path, params, bodyIn, contentType)
-                }
+                }.right()
             }
             "PUT" -> {
-                httpClient.put {
+                httpClient.put<String> {
                     prepareRequest(this, path, params, bodyIn, contentType)
-                }
+                }.right()
             }
             "DELETE" -> {
-                httpClient.delete {
+                httpClient.delete<String> {
                     prepareRequest(this, path, params, bodyIn, contentType)
-                }
+                }.right()
             }
             else -> {
-                throw RuntimeException("Method not valid [$method]")
+                DomainError("HTTP-ERROR", "Method '$method' not available").left()
             }
         }
     }
@@ -84,11 +90,12 @@ class KtorHttpClient(
         method: String,
         url: String,
         params: Map<String, String>,
-        body: String?
-    ): ByteArray {
-        return httpClient.get {
+        body: String?,
+        contentType: String?
+    ): Either<DomainError, ByteArray> {
+        return httpClient.get<ByteArray> {
             url(url)
-        }
+        }.right()
     }
 
     override suspend fun executeUpload(
@@ -98,9 +105,9 @@ class KtorHttpClient(
         mimeType: String,
         filename: String,
         byteArray: ByteArray
-    ): ByteArray =
-        httpClient.post {
-            url(url)
+    ): Either<DomainError, ByteArray> =
+        httpClient.post<ByteArray> {
+            url("${InsightConfig.baseUrl}$url")
             header("Connection", "keep-alive")
             header("Cache-Control", "no-cache")
             body = MultiPartFormDataContent(
@@ -115,7 +122,7 @@ class KtorHttpClient(
                     //this.append(FormPart("encodedComment", comment))
                 }
             )
-        }
+        }.right()
 
 
 }

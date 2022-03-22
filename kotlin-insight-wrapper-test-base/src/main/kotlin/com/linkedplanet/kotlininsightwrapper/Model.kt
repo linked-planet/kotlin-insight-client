@@ -1,11 +1,11 @@
 package com.linkedplanet.kotlininsightwrapper
 
-enum class OBJECTS {
-    Company,
-    Country,
-    TestWithLists,
-    SimpleObject,
-    Many
+enum class OBJECTS(val id: Int) {
+    Company(1),
+    Country(2),
+    TestWithLists(34),
+    SimpleObject(35),
+    Many(65)
 }
 
 enum class MANY {

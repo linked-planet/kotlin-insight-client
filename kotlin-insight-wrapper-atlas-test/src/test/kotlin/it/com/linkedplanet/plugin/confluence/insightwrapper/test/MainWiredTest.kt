@@ -7,17 +7,14 @@ import com.atlassian.confluence.user.UserAccessor
 import com.atlassian.plugins.osgi.test.AtlassianPluginsTestRunner
 import com.atlassian.sal.api.ApplicationProperties
 import com.linkedplanet.kotlininsightwrapper.AbstractMainTest
+import com.linkedplanet.kotlininsightwrapper.api.http.InsightConfig
 import com.linkedplanet.kotlininsightwrapper.atlas.AtlasHttpClient
-import com.linkedplanet.kotlininsightwrapper.core.InsightConfig
-import com.linkedplanet.kotlininsightwrapper.core.ObjectOperator
-import junit.framework.TestCase
-import kotlinx.coroutines.runBlocking
+import com.linkedplanet.kotlininsightwrapper.core.InsightSchemaCacheOperator
 import org.junit.Before
-import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AtlassianPluginsTestRunner::class)
-class MainWiredTest: AbstractMainTest {
+class MainWiredTest : AbstractMainTest {
 
     private lateinit var userAccessor: UserAccessor
     private lateinit var applicationProperties: ApplicationProperties
@@ -39,7 +36,7 @@ class MainWiredTest: AbstractMainTest {
         val httpClient = AtlasHttpClient(
             appLink
         )
-        InsightConfig.init("http://localhost:8080", 1, httpClient)
+        InsightConfig.init("http://localhost:8080", httpClient, InsightSchemaCacheOperator)
         println("### Starting MainWiredTest")
     }
 

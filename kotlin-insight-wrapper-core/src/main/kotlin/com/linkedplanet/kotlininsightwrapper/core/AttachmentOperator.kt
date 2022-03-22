@@ -1,12 +1,18 @@
 package com.linkedplanet.kotlininsightwrapper.core
 
+import arrow.core.Either
+import arrow.core.computations.either
 import com.google.gson.reflect.TypeToken
+import com.linkedplanet.kotlininsightwrapper.api.model.InsightAttachment
+import com.linkedplanet.kotlininsightwrapper.api.error.DomainError
+import com.linkedplanet.kotlininsightwrapper.api.http.InsightConfig
+import com.linkedplanet.kotlininsightwrapper.api.interfaces.AttachmentOperatorInterface
 import java.net.URLConnection
 
-object AttachmentOperator {
+object AttachmentOperator: AttachmentOperatorInterface {
 
-    suspend fun getAttachments(objectId: Int): List<InsightAttachment> {
-        return InsightConfig.httpClient.executeRestList(
+    override suspend fun getAttachments(objectId: Int): Either<DomainError, List<InsightAttachment>> = either {
+        val result: Either<DomainError, List<InsightAttachment>> = InsightConfig.httpClient.executeRestList(
             "GET",
             "rest/insight/1.0/attachments/object/${objectId}",
             emptyMap(),
@@ -14,47 +20,48 @@ object AttachmentOperator {
             "application/json",
             object : TypeToken<List<InsightAttachment>>() {}.type
         )
+        result.bind()
     }
 
     // TODO: Downloads not working in both
-    suspend fun downloadAttachment(obj: InsightAttachment): ByteArray {
-        val path = obj.url.replace("${InsightConfig.baseUrl}/", "")
-
-        val result = InsightConfig.httpClient.executeGet<ByteArray>(
-            path,
+    override suspend fun downloadAttachment(url: String): Either<DomainError, ByteArray?> = either {
+        val result: Either<DomainError, ByteArray?> = InsightConfig.httpClient.executeDownload(
+            "GET",
+            url,
             emptyMap(),
-            object: TypeToken<ByteArray>() {}.type
-        )!!
-        return result
+            null,
+            null
+        )
+        result.bind()
     }
 
     // TODO: Uploads not working in both
-    suspend fun uploadAttachment(
+    override suspend fun uploadAttachment(
         objectId: Int,
         filename: String,
         byteArray: ByteArray,
-        comment: String = ""
-    ): List<InsightAttachment> {
+        comment: String
+    ): Either<DomainError, List<InsightAttachment>> = either {
         val mimeType = URLConnection.guessContentTypeFromName(filename)
-        InsightConfig.httpClient.executeUpload(
+        val result = InsightConfig.httpClient.executeUpload(
             "POST",
-            "${InsightConfig.baseUrl}/rest/insight/1.0/attachments/object/${objectId}",
+            "/rest/insight/1.0/attachments/object/${objectId}",
             emptyMap(),
             mimeType,
             filename,
             byteArray
-        )
-        return getAttachments(objectId)
+        ).bind()
+        getAttachments(objectId).bind()
     }
 
-    suspend fun deleteAttachment(attachmentId: Int): String {
+    override suspend fun deleteAttachment(attachmentId: Int): Either<DomainError, String> = either {
         val result = InsightConfig.httpClient.executeRestCall(
             "DELETE",
             "/rest/insight/1.0/attachments/${attachmentId}",
             emptyMap(),
             null,
             "application/json"
-        )
-        return result
+        ).bind()
+        result
     }
 }

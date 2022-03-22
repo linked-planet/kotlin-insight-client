@@ -1,12 +1,17 @@
 package com.linkedplanet.kotlininsightwrapper.atlas
 
+import arrow.core.Either
 import com.atlassian.applinks.api.ApplicationLink
 import com.atlassian.applinks.api.ApplicationLinkResponseHandler
 import com.atlassian.sal.api.net.Request
+import com.atlassian.sal.api.net.RequestFilePart
 import com.atlassian.sal.api.net.Response
 import com.atlassian.sal.api.net.ResponseException
-import com.linkedplanet.kotlininsightwrapper.core.BaseHttpClient
+import com.linkedplanet.kotlininsightwrapper.api.http.BaseHttpClient
+import com.linkedplanet.kotlininsightwrapper.api.error.DomainError
+import com.linkedplanet.kotlininsightwrapper.api.error.ResponseError
 import org.apache.http.HttpHeaders
+import org.jetbrains.kotlin.library.impl.javaFile
 
 class AtlasHttpClient(private val appLink: ApplicationLink) : BaseHttpClient() {
 
@@ -17,7 +22,7 @@ class AtlasHttpClient(private val appLink: ApplicationLink) : BaseHttpClient() {
         body: String?,
         contentType: String?,
         headers: Map<String, String>
-    ): String {
+    ): Either<DomainError, String> =
         try {
             //val pathWithParams = if(params != null) "$path?${URLEncoder.encode(params)}" else path
             val atlasMethod = Request.MethodType.valueOf(method)
@@ -31,37 +36,68 @@ class AtlasHttpClient(private val appLink: ApplicationLink) : BaseHttpClient() {
             } else {
                 requestWithoutBody.setRequestBody(body).setHeader(HttpHeaders.CONTENT_TYPE, contentType)
             }
-            return request.execute(object : ApplicationLinkResponseHandler<String> {
-                override fun credentialsRequired(response: Response): String? {
+            request.execute(object : ApplicationLinkResponseHandler<Either<DomainError, String>> {
+                override fun credentialsRequired(response: Response): Either<DomainError, String>? {
                     return null
                 }
 
-                @Throws(ResponseException::class)
-                override fun handle(response: Response): String? {
+                override fun handle(response: Response): Either<DomainError, String> {
                     return when {
-                        response.isSuccessful -> response.responseBodyAsString
+                        response.isSuccessful -> Either.Right(response.responseBodyAsString)
                         else -> {
-                            val statusCode = response.statusCode
-                            val content = response.statusText
-                            val errorWithStatusCode = "Call to " + path + " failed - " + response.statusCode
-                            throw ResponseException(errorWithStatusCode)
+                            val errorWithStatusCode = """Call to $path failed with 
+                            status [${response.statusCode}]
+                            statusText [${response.statusText}]
+                            body [${response.responseBodyAsString}]"""
+                            return Either.Left(ResponseError(errorWithStatusCode))
                         }
                     }
                 }
             })
         } catch (e: ResponseException) {
-            throw Exception("Jira/Insight hat ein internes Problem festgestellt", e)
+            Either.Left(DomainError("Jira/Insight hat ein internes Problem festgestellt", ""))
         }
-    }
 
     override suspend fun executeDownload(
         method: String,
-        url: String,
+        path: String,
         params: Map<String, String>,
-        body: String?
-    ): ByteArray {
-        TODO("Not yet implemented")
-    }
+        body: String?,
+        contentType: String?
+    ): Either<DomainError, ByteArray> =
+        try {
+            val atlasMethod = Request.MethodType.valueOf(method)
+            val parameters = encodeParams(params)
+            val pathWithParams = if (params.isNotEmpty()) "$path?${parameters}" else path
+
+            val requestFactory = appLink.createAuthenticatedRequestFactory()
+            val requestWithoutBody = requestFactory.createRequest(atlasMethod, pathWithParams)
+            val request = if (body == null) {
+                requestWithoutBody
+            } else {
+                requestWithoutBody.setRequestBody(body).setHeader(HttpHeaders.CONTENT_TYPE, contentType)
+            }
+            request.execute(object : ApplicationLinkResponseHandler<Either<DomainError, ByteArray>> {
+                override fun credentialsRequired(response: Response): Either<DomainError, ByteArray>? {
+                    return null
+                }
+
+                override fun handle(response: Response): Either<DomainError, ByteArray> {
+                    return when {
+                        response.isSuccessful -> Either.Right(response.responseBodyAsStream.readBytes())
+                        else -> {
+                            val errorWithStatusCode = """Call to $path failed with 
+                            status [${response.statusCode}]
+                            statusText [${response.statusText}]
+                            body [${response.responseBodyAsString}]"""
+                            return Either.Left(ResponseError(errorWithStatusCode))
+                        }
+                    }
+                }
+            })
+        } catch (e: ResponseException) {
+            Either.Left(DomainError("Jira/Insight hat ein internes Problem festgestellt", ""))
+        }
 
     override suspend fun executeUpload(
         method: String,
@@ -70,8 +106,39 @@ class AtlasHttpClient(private val appLink: ApplicationLink) : BaseHttpClient() {
         mimeType: String,
         filename: String,
         byteArray: ByteArray
-    ): ByteArray {
-        TODO("Not yet implemented")
-    }
+    ): Either<DomainError, ByteArray> =
+        try {
+            val atlasMethod = Request.MethodType.valueOf(method)
+            val parameters = encodeParams(params)
+            val pathWithParams = if (params.isNotEmpty()) "$url?${parameters}" else url
 
+            val requestFactory = appLink.createAuthenticatedRequestFactory()
+            val requestWithoutBody = requestFactory.createRequest(atlasMethod, pathWithParams)
+
+            val file: java.io.File = org.jetbrains.kotlin.konan.file.createTempFile(filename).javaFile()
+            file.writeBytes(byteArray)
+            val filePart = RequestFilePart(file, "file")
+
+            val request = requestWithoutBody.setFiles(listOf(filePart))
+            request.execute(object : ApplicationLinkResponseHandler<Either<DomainError, ByteArray>> {
+                override fun credentialsRequired(response: Response): Either<DomainError, ByteArray>? {
+                    return null
+                }
+
+                override fun handle(response: Response): Either<DomainError, ByteArray> {
+                    return when {
+                        response.isSuccessful -> Either.Right(byteArray)
+                        else -> {
+                            val errorWithStatusCode = """Call to $url failed with 
+                            status [${response.statusCode}]
+                            statusText [${response.statusText}]
+                            body [${response.responseBodyAsString}]"""
+                            return Either.Left(ResponseError(errorWithStatusCode))
+                        }
+                    }
+                }
+            })
+        } catch (e: ResponseException) {
+            Either.Left(DomainError("Jira/Insight hat ein internes Problem festgestellt", ""))
+        }
 }

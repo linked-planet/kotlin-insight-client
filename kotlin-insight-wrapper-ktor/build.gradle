@@ -5,6 +5,7 @@ plugins {
 }
 
 dependencies {
+    implementation project(":kotlin-insight-wrapper-api")
     implementation project(":kotlin-insight-wrapper-core")
     testImplementation project(":kotlin-insight-wrapper-test-base")
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.3.41"
@@ -14,6 +15,9 @@ dependencies {
     implementation "io.ktor:ktor-client-gson:1.1.3"
     implementation "io.ktor:ktor-client-auth-basic:1.1.3"
     implementation "com.typesafe:config:1.3.4"
+
+    implementation "io.arrow-kt:arrow-core:0.13.2"
+    implementation "io.arrow-kt:arrow-meta:0.13.2"
 
     testCompile "junit:junit:4.12"
 }

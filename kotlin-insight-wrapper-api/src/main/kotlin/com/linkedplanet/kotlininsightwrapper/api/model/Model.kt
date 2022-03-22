@@ -17,8 +17,9 @@
  * limitations under the License.
  * #L%
  */
-package com.linkedplanet.kotlininsightwrapper.core
+package com.linkedplanet.kotlininsightwrapper.api.model
 
+import com.linkedplanet.kotlininsightwrapper.api.http.InsightConfig
 import org.joda.time.DateTime
 import java.util.Collections.emptyList
 
@@ -66,13 +67,13 @@ fun MyInsightEntry.getValueList(name: String): List<Any> {
         .firstOrNull { it.attributeName == name }
         ?.value
         ?.mapNotNull { it.value }
-        ?:emptyList<Any>()
+        ?: emptyList<Any>()
 }
 
 fun MyInsightEntry.setValueList(name: String, values: List<Any?>) {
     val attribute = this.attributes
         .firstOrNull { it.attributeName == name }
-    if(attribute == null){
+    if (attribute == null) {
         this.createAttribute(name)
     }
     this.attributes
@@ -404,6 +405,24 @@ data class ObjectUpdateResponse(
     val objectKey: String
 )
 
+data class InsightSchemaDescription(
+    val id: Int,
+    val name: String,
+    val objectTypes: List<InsightObjectTypeDescription>
+)
+
+data class InsightAttributeDescription(
+    val id: Int,
+    val name: String,
+    val type: String
+)
+
+data class InsightObjectTypeDescription(
+    val id: Int,
+    val name: String,
+    val attributes: List<InsightAttributeDescription>
+)
+
 
 data class InsightAttachment(
     val id: Int,
@@ -416,15 +435,15 @@ data class InsightAttachment(
     val commentOutput: String,
     val url: String
 ) {
-    suspend fun getBytes(): ByteArray {
-        return AttachmentOperator.downloadAttachment(this)
-    }
-
-    suspend fun delete(): Boolean {
-        if (id <= 0) {
-            return false
-        }
-        AttachmentOperator.deleteAttachment(this.id)
-        return true
-    }
+//    suspend fun getBytes(): Either<DomainError, ByteArray?> {
+//        return AttachmentOperator.downloadAttachment(this)
+//    }
+//
+//    suspend fun delete(): Boolean {
+//        if (id <= 0) {
+//            return false
+//        }
+//        AttachmentOperator.deleteAttachment(this.id)
+//        return true
+//    }
 }
