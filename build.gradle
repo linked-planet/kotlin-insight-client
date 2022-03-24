@@ -11,7 +11,7 @@ allprojects {
     ext.kotlin_version = "1.4.21"
 
     group "com.linked-planet"
-    version "1.0"
+    version scmVersion.version
 
     repositories {
         mavenCentral()
