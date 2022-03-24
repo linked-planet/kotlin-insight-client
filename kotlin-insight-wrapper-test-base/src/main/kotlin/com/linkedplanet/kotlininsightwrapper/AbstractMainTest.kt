@@ -1,14 +1,15 @@
 package com.linkedplanet.kotlininsightwrapper
 
-import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import com.linkedplanet.kotlininsightwrapper.api.model.*
-import com.linkedplanet.kotlininsightwrapper.core.*
+import com.linkedplanet.kotlininsightwrapper.core.AttachmentOperator
+import com.linkedplanet.kotlininsightwrapper.core.HistoryOperator
+import com.linkedplanet.kotlininsightwrapper.core.ObjectOperator
+import com.linkedplanet.kotlininsightwrapper.core.ObjectTypeOperator
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
 import java.io.File
-import java.lang.IllegalStateException
 import java.security.MessageDigest
 
 
@@ -84,7 +85,7 @@ abstract class AbstractMainTest {
     }
 
     @Test
-    fun testAddingSelectList(){
+    fun testAddingSelectList() {
         println("### START testAddingSelectList")
         val obj = runBlocking {
             ObjectOperator.getObjects(OBJECTS.TestWithLists.id).orNull()
@@ -170,10 +171,16 @@ abstract class AbstractMainTest {
             // Check Delete
             ObjectOperator.deleteObject(countryReference.objectId)
             ObjectOperator.deleteObject(company1.id)
-            val companyAfterDelete = ObjectOperator.getObjectByName(OBJECTS.Company.id, company1.getStringValue(
-                COMPANY.Name.name)!!).orNull()
-            val countryAfterDelete = ObjectOperator.getObjectByName(OBJECTS.Country.id, company1.getStringValue(
-                COUNTRY.Name.name)!!).orNull()
+            val companyAfterDelete = ObjectOperator.getObjectByName(
+                OBJECTS.Company.id, company1.getStringValue(
+                    COMPANY.Name.name
+                )!!
+            ).orNull()
+            val countryAfterDelete = ObjectOperator.getObjectByName(
+                OBJECTS.Country.id, company1.getStringValue(
+                    COUNTRY.Name.name
+                )!!
+            ).orNull()
             assertTrue(companyAfterDelete == null)
             assertTrue(countryAfterDelete == null)
         }
@@ -237,8 +244,10 @@ abstract class AbstractMainTest {
         runBlocking {
             val country = ObjectOperator.getObjectByName(OBJECTS.Country.id, "Germany").orNull()!!
             val uploadFile = File(AbstractMainTest::class.java.classLoader.getResource("TestAttachment.pdf").file)
-            val newAttachment = AttachmentOperator.uploadAttachment(country.id, uploadFile.name, uploadFile.readBytes(), "MyComment").orNull()!!
-            val attachments = AttachmentOperator.getAttachments(country.id).orNull()?: emptyList()
+            val newAttachment =
+                AttachmentOperator.uploadAttachment(country.id, uploadFile.name, uploadFile.readBytes(), "MyComment")
+                    .orNull()!!
+            val attachments = AttachmentOperator.getAttachments(country.id).orNull() ?: emptyList()
             assertTrue(attachments.size == 1)
             assertTrue(newAttachment.first().author == attachments.first().author)
             assertTrue(newAttachment.first().comment == attachments.first().comment)
