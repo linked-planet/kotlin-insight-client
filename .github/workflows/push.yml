@@ -13,19 +13,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: docker hub login
-        uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.USERNAME }}
-          password: ${{ secrets.PASSWORD }}
-      - name: Startup Jira and Insight
-        run: docker-compose up -d
-      - name: Wait for Jira and Insight
-        run: ./scripts/waitingForJira.sh
-      - name: Build and Test library
-        run: ./gradlew test install --info
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_API_TOKEN }}
+#      - name: docker hub login
+#        uses: docker/login-action@v1
+#        with:
+#          username: ${{ secrets.USERNAME }}
+#          password: ${{ secrets.PASSWORD }}
+#      - name: Startup Jira and Insight
+#        run: docker-compose up -d
+#      - name: Wait for Jira and Insight
+#        run: ./scripts/waitingForJira.sh
+#      - name: Build and Test library
+#        run: ./gradlew clean install --info
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GH_API_TOKEN }}
 #      - name: Build and Test confluence library
 #        run: mvn clean -f kotlin-insight-wrapper-atlas-test/pom.xml -B verify -Dbaseurl=http://localhost:1990
       - uses: actions/checkout@v2
