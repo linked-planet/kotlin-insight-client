@@ -17,9 +17,9 @@ object InsightConfig {
     var schemaDescriptionCache: List<InsightSchemaDescription> = emptyList()
 
 
-    fun init(
+    fun <T: BaseHttpClient> init(
         baseUrlIn: String,
-        httpClientIn: BaseHttpClient,
+        httpClientIn: T,
         insightSchemaOperator: InsightSchemaCacheOperatorInterface
     ): Either<DomainError, Unit> {
         baseUrl = baseUrlIn
