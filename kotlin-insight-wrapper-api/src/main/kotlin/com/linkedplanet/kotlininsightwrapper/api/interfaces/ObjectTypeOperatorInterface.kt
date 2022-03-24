@@ -2,7 +2,7 @@ package com.linkedplanet.kotlininsightwrapper.api.interfaces
 
 import arrow.core.Either
 import com.linkedplanet.kotlininsightwrapper.api.model.ObjectTypeSchema
-import com.linkedplanet.kotlininsightwrapper.api.error.DomainError
+import com.linkedplanet.kotlinhttpclient.error.DomainError
 
 interface ObjectTypeOperatorInterface {
 

@@ -4,8 +4,8 @@ import arrow.core.Either
 import arrow.core.computations.either
 import com.google.gson.reflect.TypeToken
 import com.linkedplanet.kotlininsightwrapper.api.model.InsightAttachment
-import com.linkedplanet.kotlininsightwrapper.api.error.DomainError
-import com.linkedplanet.kotlininsightwrapper.api.http.InsightConfig
+import com.linkedplanet.kotlinhttpclient.error.DomainError
+import com.linkedplanet.kotlininsightwrapper.api.InsightConfig
 import com.linkedplanet.kotlininsightwrapper.api.interfaces.AttachmentOperatorInterface
 import java.net.URLConnection
 

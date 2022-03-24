@@ -5,8 +5,8 @@ import arrow.core.computations.either
 import com.google.gson.reflect.TypeToken
 import com.linkedplanet.kotlininsightwrapper.api.model.ObjectTypeSchema
 import com.linkedplanet.kotlininsightwrapper.api.model.ObjectTypeSchemaAttribute
-import com.linkedplanet.kotlininsightwrapper.api.error.DomainError
-import com.linkedplanet.kotlininsightwrapper.api.http.InsightConfig
+import com.linkedplanet.kotlinhttpclient.error.DomainError
+import com.linkedplanet.kotlininsightwrapper.api.InsightConfig
 import com.linkedplanet.kotlininsightwrapper.api.interfaces.ObjectTypeOperatorInterface
 
 object ObjectTypeOperator: ObjectTypeOperatorInterface {

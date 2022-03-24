@@ -19,7 +19,7 @@
  */
 package com.linkedplanet.kotlininsightwrapper.api.model
 
-import com.linkedplanet.kotlininsightwrapper.api.http.InsightConfig
+import com.linkedplanet.kotlininsightwrapper.api.InsightConfig
 import org.joda.time.DateTime
 import java.util.Collections.emptyList
 

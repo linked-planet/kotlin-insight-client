@@ -1,11 +1,12 @@
-package com.linkedplanet.kotlininsightwrapper.api.http
+package com.linkedplanet.kotlininsightwrapper.api
 
 import arrow.core.Either
 import com.linkedplanet.kotlininsightwrapper.api.model.InsightSchemaDescription
 import com.linkedplanet.kotlininsightwrapper.api.model.ObjectTypeSchema
 import com.linkedplanet.kotlininsightwrapper.api.interfaces.InsightSchemaCacheOperatorInterface
-import com.linkedplanet.kotlininsightwrapper.api.error.DomainError
 import kotlinx.coroutines.runBlocking
+import com.linkedplanet.kotlinhttpclient.api.http.BaseHttpClient
+import com.linkedplanet.kotlinhttpclient.error.DomainError
 
 object InsightConfig {
 

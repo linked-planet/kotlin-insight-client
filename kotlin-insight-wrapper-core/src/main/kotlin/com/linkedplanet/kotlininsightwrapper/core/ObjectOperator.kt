@@ -4,9 +4,9 @@ import arrow.core.Either
 import arrow.core.computations.either
 import arrow.core.flatten
 import com.google.gson.JsonParser
-import com.linkedplanet.kotlininsightwrapper.api.error.DomainError
-import com.linkedplanet.kotlininsightwrapper.api.http.GSON
-import com.linkedplanet.kotlininsightwrapper.api.http.InsightConfig
+import com.linkedplanet.kotlinhttpclient.error.DomainError
+import com.linkedplanet.kotlinhttpclient.api.http.GSON
+import com.linkedplanet.kotlininsightwrapper.api.InsightConfig
 import com.linkedplanet.kotlininsightwrapper.api.interfaces.ObjectOperatorInterface
 import com.linkedplanet.kotlininsightwrapper.api.model.*
 

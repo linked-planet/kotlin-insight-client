@@ -21,9 +21,9 @@ package com.linkedplanet.kotlininsightwrapper.core
 
 import arrow.core.Either
 import com.google.gson.reflect.TypeToken
-import com.linkedplanet.kotlininsightwrapper.api.http.InsightConfig
+import com.linkedplanet.kotlininsightwrapper.api.InsightConfig
 import com.linkedplanet.kotlininsightwrapper.api.model.InsightSchemas
-import com.linkedplanet.kotlininsightwrapper.api.error.DomainError
+import com.linkedplanet.kotlinhttpclient.error.DomainError
 import com.linkedplanet.kotlininsightwrapper.api.interfaces.InsightSchemaOperatorInterface
 
 object InsightSchemaOperator: InsightSchemaOperatorInterface {

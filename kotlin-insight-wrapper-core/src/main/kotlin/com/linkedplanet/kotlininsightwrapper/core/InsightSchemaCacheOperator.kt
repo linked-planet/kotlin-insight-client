@@ -22,10 +22,10 @@ package com.linkedplanet.kotlininsightwrapper.core
 import arrow.core.Either
 import arrow.core.computations.either
 import com.linkedplanet.kotlininsightwrapper.api.model.InsightAttributeDescription
-import com.linkedplanet.kotlininsightwrapper.api.http.InsightConfig
+import com.linkedplanet.kotlininsightwrapper.api.InsightConfig
 import com.linkedplanet.kotlininsightwrapper.api.model.InsightObjectTypeDescription
 import com.linkedplanet.kotlininsightwrapper.api.model.InsightSchemaDescription
-import com.linkedplanet.kotlininsightwrapper.api.error.DomainError
+import com.linkedplanet.kotlinhttpclient.error.DomainError
 import com.linkedplanet.kotlininsightwrapper.api.interfaces.InsightSchemaCacheOperatorInterface
 import org.joda.time.DateTime
 

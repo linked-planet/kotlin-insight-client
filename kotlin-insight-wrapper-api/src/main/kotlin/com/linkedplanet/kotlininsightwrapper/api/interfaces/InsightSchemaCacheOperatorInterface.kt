@@ -21,7 +21,7 @@ package com.linkedplanet.kotlininsightwrapper.api.interfaces
 
 import arrow.core.Either
 import com.linkedplanet.kotlininsightwrapper.api.model.InsightSchemaDescription
-import com.linkedplanet.kotlininsightwrapper.api.error.DomainError
+import com.linkedplanet.kotlinhttpclient.error.DomainError
 import org.joda.time.DateTime
 
 interface InsightSchemaCacheOperatorInterface {

@@ -5,6 +5,7 @@ plugins {
 }
 
 dependencies {
+    implementation "com.linked-planet:kotlin-http-client-ktor:0.1.0-SNAPSHOT"
     implementation project(":kotlin-insight-wrapper-api")
     implementation project(":kotlin-insight-wrapper-core")
     testImplementation project(":kotlin-insight-wrapper-test-base")
