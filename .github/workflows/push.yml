@@ -1,5 +1,13 @@
-name: Docker Compose Actions Workflow
-on: push
+name: Publish Library
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  release:
+    types: [ created ]
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -15,4 +23,21 @@ jobs:
       - name: Wait for Jira and Insight
         run: ./scripts/waitingForJira.sh
       - name: Build and Test library
-        run: ./gradlew test --info
+        run: ./gradlew test install --info
+#      - name: Build and Test confluence library
+#        run: mvn clean -f kotlin-insight-wrapper-atlas-test/pom.xml -B verify -Dbaseurl=http://localhost:1990
+      - uses: actions/checkout@v2
+      - name: Build and Test library
+        run: ./gradlew clean install
+        # The USERNAME and TOKEN need to correspond to the credentials environment variables used in
+        # the publishing section of your build.gradle
+      - name: Publish to GitHub Packages
+        run: |
+          NEW_VERSION=$(./gradlew cV | grep "Project version" | cut -d ":" -f2 | xargs | awk '{print $1}') 
+          NEW_OLD_VERSION=$(./gradlew cV | grep "Project version" | cut -d ":" -f2 | xargs) 
+          echo "New old version: ${NEW_OLD_VERSION}"
+          echo "New version: ${NEW_VERSION}"
+          echo "Github username: ${GITHUB_ACTOR}"
+          ./gradlew -Pversion=$NEW_VERSION publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_API_TOKEN }}

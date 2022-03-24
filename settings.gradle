@@ -1,2 +1,13 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
 rootProject.name = 'kotlin-insight-wrapper'
+include 'kotlin-insight-wrapper-api'
+include 'kotlin-insight-wrapper-core'
+include 'kotlin-insight-wrapper-ktor'
+include 'kotlin-insight-wrapper-test-base'
 

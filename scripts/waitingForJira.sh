@@ -1,4 +1,5 @@
 #!/bin/bash
+maxWaitTime=120
 index=1
 result=0
 echo "### Checking Jira is running"
@@ -9,13 +10,14 @@ do
   then
     result=1
   fi
-  if [ $index -ge 120 ]
+  if [ $index -ge $maxWaitTime ]
   then
-    echo "!!! JIRA NOT RUNNING AFTER 15 SECONDS"
+    echo "!!! JIRA NOT RUNNING AFTER $maxWaitTime SECONDS"
     exit 1
   fi
   sleep 1
-  echo -ne "### WAITING FOR JIRA since $index Seconds"\\r
+  echo -"### WAITING FOR JIRA since $index Seconds"
   index=$((index+1))
 done
 echo "### JIRA IS UP"
+sleep 5

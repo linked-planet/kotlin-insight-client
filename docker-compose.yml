@@ -10,8 +10,7 @@ services:
       - POSTGRES_DB=jira
 
   jira:
-    image: kadega/jira-insight:7
-    ports:
-      - "8080:8080"
+    image: kadega/jira-insight:8
+    network_mode: host
     environment:
       - CATALINA_OPTS=-Xmx3072m -Xms3072m
