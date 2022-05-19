@@ -1,7 +1,9 @@
 name: Build and Test Library
 on:
   push:
-    branches-ignore:
+    branches: [ master, dev ]
+  pull_request:
+    branches:
       - master
 jobs:
   test:
