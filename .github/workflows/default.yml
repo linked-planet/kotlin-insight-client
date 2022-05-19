@@ -1,0 +1,16 @@
+name: Build and Test Library
+on:
+  push:
+    branches: [ master, dev ]
+  pull_request:
+    branches:
+      - master
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build and Test library
+        run: ./gradlew clean install
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_API_TOKEN }}

@@ -173,7 +173,7 @@ object ObjectOperator : ObjectOperatorInterface {
         ).bind()?.toValues()?.firstOrNull()
     }
 
-    private fun InsightObject.toValue(): MyInsightEntry {
+    private fun InsightObjectApiResponse.toValue(): MyInsightEntry {
         val objectType = InsightConfig.objectSchemas.first { it.id == this.objectType.id }
         val attributes = this.attributes.map {
             val attributeId = it.objectTypeAttributeId

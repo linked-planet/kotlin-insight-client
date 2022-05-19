@@ -274,6 +274,18 @@ fun MyInsightEntry.getMultiReference(name: String): List<MyInsightReference> =
         }
         ?: emptyList()
 
+fun MyInsightEntry.toObject(): InsightObject {
+    val attributeMapping = this.attributes.map {
+        it.attributeName to (this.getStringValue(it.attributeName)?:"")
+    }.toMap()
+    return InsightObject(
+        this.typeId,
+        this.id,
+        this.getStringValue("Name")?:"",
+        attributeMapping
+    )
+}
+
 data class MyInsightReference(
     val objectTypeId: Int,
     val objectTypeName: String,
@@ -291,7 +303,8 @@ data class MyInsightAttribute(
 data class ObjectTypeSchema(
     val id: Int,
     val name: String,
-    var attributes: List<ObjectTypeSchemaAttribute>
+    var attributes: List<ObjectTypeSchemaAttribute>,
+    val parentObjectTypeId: Int?
 )
 
 data class ObjectEditItem(
@@ -321,7 +334,14 @@ data class ObjectTypeAttributeDefaultType(
 )
 
 data class InsightObjectEntries(
-    val objectEntries: List<InsightObject>
+    val objectEntries: List<InsightObjectApiResponse>
+)
+
+data class InsightObject(
+    val objectTypeId: Int,
+    val id: Int,
+    val name: String,
+    val attributes: Map<String, String>
 )
 
 data class InsightSchemas(
@@ -333,7 +353,7 @@ data class InsightSchema(
     val name: String
 )
 
-data class InsightObject(
+data class InsightObjectApiResponse(
     val id: Int,
     val label: String,
     val objectKey: String,
