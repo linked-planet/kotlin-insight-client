@@ -1,8 +1,8 @@
 package com.linkedplanet.kotlininsightwrapper.api.interfaces
 
 import arrow.core.Either
-import com.linkedplanet.kotlininsightwrapper.api.model.ObjectTypeSchema
 import com.linkedplanet.kotlinhttpclient.error.DomainError
+import com.linkedplanet.kotlininsightwrapper.api.model.ObjectTypeSchema
 
 interface ObjectTypeOperatorInterface {
 
@@ -16,10 +16,12 @@ interface ObjectTypeOperatorInterface {
 
     suspend fun getObjectTypesBySchema(schemaId: Int): Either<DomainError, List<ObjectTypeSchema>>
 
-    // PRIVATE DOWN HERE
+    suspend fun getObjectTypesBySchemaAndRootObjectType(
+        schemaId: Int,
+        rootObjectTypeId: Int
+    ): Either<DomainError, List<ObjectTypeSchema>>
+
     suspend fun getObjectTypeSchemas(schemaId: Int): Either<DomainError, List<ObjectTypeSchema>>
 
-    suspend fun parseObjectTypeSchema(objectTypeSchema: ObjectTypeSchema): Either<DomainError, ObjectTypeSchema>
-
-
+    suspend fun populateObjectTypeSchemaAttributes(objectTypeSchema: ObjectTypeSchema): Either<DomainError, ObjectTypeSchema>
 }
