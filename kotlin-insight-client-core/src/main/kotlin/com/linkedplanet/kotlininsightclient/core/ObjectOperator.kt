@@ -40,15 +40,15 @@ object ObjectOperator : ObjectOperatorInterface {
         return getObjectsByPlainIQL(objectTypeId, iql, pageFrom, pageTo, perPage)
     }
 
-    override suspend fun getObjectById(id: Int): Either<DomainError, MyInsightEntry?> {
+    override suspend fun getObjectById(id: Int): Either<DomainError, InsightObject?> {
         return getObjectByPlainIQL("objectId=$id")
     }
 
-    override suspend fun getObjectByKey(key: String): Either<DomainError, MyInsightEntry?> {
+    override suspend fun getObjectByKey(key: String): Either<DomainError, InsightObject?> {
         return getObjectByPlainIQL("Key=\"$key\"")
     }
 
-    override suspend fun getObjectByName(objectTypeId: Int, name: String): Either<DomainError, MyInsightEntry?> {
+    override suspend fun getObjectByName(objectTypeId: Int, name: String): Either<DomainError, InsightObject?> {
         return getObjectByPlainIQL("objectTypeId=$objectTypeId AND Name=\"$name\"")
     }
 
@@ -70,11 +70,11 @@ object ObjectOperator : ObjectOperatorInterface {
         )
     }
 
-    override suspend fun updateObject(obj: MyInsightEntry): Either<DomainError, MyInsightEntry> {
+    override suspend fun updateObject(obj: InsightObject): Either<DomainError, InsightObject> {
         val objRefEditAttributes = obj.getEditReferences()
         val objEditAttributes = obj.getEditValues()
         val editItem = ObjectEditItem(
-            obj.typeId,
+            obj.objectType.id,
             objEditAttributes + objRefEditAttributes
         )
         val response =
@@ -102,14 +102,14 @@ object ObjectOperator : ObjectOperatorInterface {
 
     override suspend fun createObject(
         objectTypeId: Int,
-        func: (MyInsightEntry) -> Unit
-    ): Either<DomainError, MyInsightEntry> = either {
+        func: (InsightObject) -> Unit
+    ): Either<DomainError, InsightObject> = either {
         val obj = createEmptyObject(objectTypeId)
         func(obj)
         val objRefEditAttributes = obj.getEditReferences()
         val objEditAttributes = obj.getEditValues()
         val editItem = ObjectEditItem(
-            obj.typeId,
+            obj.objectType.id,
             objEditAttributes + objRefEditAttributes
         )
         val response = InsightConfig.httpClient.executeRest<ObjectUpdateResponse>(
@@ -178,9 +178,17 @@ object ObjectOperator : ObjectOperatorInterface {
         }
     }
 
+    private fun InsightObjectEntries.toValues(): InsightObjects =
+        InsightObjects(
+            this.totalFilterCount,
+            this.objectEntries.map {
+                it.toValue()
+            }
+        )
+
     private suspend fun getObjectByPlainIQL(
         iql: String
-    ): Either<DomainError, MyInsightEntry?> = either {
+    ): Either<DomainError, InsightObject?> = either {
         InsightConfig.httpClient.executeRest<InsightObjectEntries>(
             "GET",
             "rest/insight/1.0/iql/objects",
@@ -207,31 +215,23 @@ object ObjectOperator : ObjectOperatorInterface {
         }
     }
 
-    private fun InsightObject.toValue(): MyInsightEntry {
+    private fun InsightObjectApiResponse.toValue(): InsightObject {
         val objectType =
             InsightConfig.objectSchemas.first { it.id == this.objectType.id }
         val attributes = this.attributes.map {
             val attributeId = it.objectTypeAttributeId
-            MyInsightAttribute(
+            InsightAttribute(
                 it.objectTypeAttributeId,
                 objectType.attributes.firstOrNull { it.id == attributeId }?.name ?: "",
                 it.objectAttributeValues
             )
         }
-        return MyInsightEntry(
-            objectType.id,
+        return InsightObject(
+            objectType,
             this.id,
             attributes
         )
     }
-
-    private fun InsightObjectEntries.toValues(): InsightObjects =
-        InsightObjects(
-            this.totalFilterCount,
-            this.objectEntries.map {
-                it.toValue()
-            }
-        )
 
     private fun getIQLWithChildren(objTypeId: Int, withChildren: Boolean): String =
         if (withChildren) {
@@ -240,23 +240,23 @@ object ObjectOperator : ObjectOperatorInterface {
             "objectTypeId=$objTypeId"
         }
 
-    private suspend fun createEmptyObject(objectTypeId: Int): MyInsightEntry {
+    private fun createEmptyObject(objectTypeId: Int): InsightObject {
         val schema = InsightConfig.objectSchemas.first { it.id == objectTypeId }
         val attributes = schema.attributes.map {
-            MyInsightAttribute(
+            InsightAttribute(
                 it.id,
                 it.name,
                 emptyList()
             )
         }
-        return MyInsightEntry(
-            schema.id,
+        return InsightObject(
+            schema,
             -1,
             attributes
         )
     }
 
-    private suspend fun MyInsightEntry.getEditReferences(): List<ObjectEditItemAttribute> =
+    private fun InsightObject.getEditReferences(): List<ObjectEditItemAttribute> =
         this.attributes
             .filter { it.value.any { it.referencedObject != null } }
             .map {
@@ -271,7 +271,7 @@ object ObjectOperator : ObjectOperatorInterface {
                 )
             }
 
-    private suspend fun MyInsightEntry.getEditValues(): List<ObjectEditItemAttribute> =
+    private suspend fun InsightObject.getEditValues(): List<ObjectEditItemAttribute> =
         this.attributes
             .filter { it.value.any { it.value != null } || this.isSelectField(it.attributeName) }
             .map {
@@ -286,7 +286,7 @@ object ObjectOperator : ObjectOperatorInterface {
                 )
             }
 
-    private suspend fun MyInsightEntry.isSelectField(attributeName: String): Boolean =
+    private fun InsightObject.isSelectField(attributeName: String): Boolean =
         this.getAttributeType(attributeName)?.takeIf { it == "Select" }?.let { true } ?: false
 
 }

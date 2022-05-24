@@ -15,7 +15,6 @@
  */
 package com.linkedplanet.kotlininsightclient
 
-import arrow.core.getOrHandle
 import com.linkedplanet.kotlininsightclient.api.model.*
 import com.linkedplanet.kotlininsightclient.core.AttachmentOperator
 import com.linkedplanet.kotlininsightclient.core.HistoryOperator

@@ -17,14 +17,16 @@ package com.linkedplanet.kotlininsightclient.core
 
 import arrow.core.Either
 import arrow.core.computations.either
+import arrow.core.left
 import com.google.gson.reflect.TypeToken
-import com.linkedplanet.kotlininsightclient.api.model.ObjectTypeSchema
-import com.linkedplanet.kotlininsightclient.api.model.ObjectTypeSchemaAttribute
 import com.linkedplanet.kotlinhttpclient.error.DomainError
 import com.linkedplanet.kotlininsightclient.api.InsightConfig
 import com.linkedplanet.kotlininsightclient.api.interfaces.ObjectTypeOperatorInterface
+import com.linkedplanet.kotlininsightclient.api.model.ObjectTypeSchema
+import com.linkedplanet.kotlininsightclient.api.model.ObjectTypeSchemaAttribute
+import com.linkedplanet.kotlininsightclient.api.model.ObjectTypeNotFoundError
 
-object ObjectTypeOperator: ObjectTypeOperatorInterface {
+object ObjectTypeOperator : ObjectTypeOperatorInterface {
     override suspend fun loadAllObjectTypeSchemas(): Either<DomainError, List<ObjectTypeSchema>> = either {
         InsightSchemaOperator.getSchemas().bind().objectschemas.flatMap {
             loadObjectTypeSchemas(it.id).bind()
@@ -34,14 +36,14 @@ object ObjectTypeOperator: ObjectTypeOperatorInterface {
     override suspend fun loadObjectTypeSchemas(schemaId: Int): Either<DomainError, List<ObjectTypeSchema>> = either {
         val schemas = getObjectTypeSchemas(schemaId).bind()
         schemas.map {
-            parseObjectTypeSchema(it).bind()
+            populateObjectTypeSchemaAttributes(it).bind()
         }
     }
 
     override suspend fun reloadObjectTypeSchema(schemaId: Int, name: String): Either<DomainError, Unit> = either {
         val schemas = getObjectTypeSchemas(schemaId).bind().filter { it.name == name }
         schemas.firstOrNull()?.let {
-            parseObjectTypeSchema(it).bind()
+            populateObjectTypeSchemaAttributes(it).bind()
         }?.apply {
             InsightConfig.objectSchemas =
                 InsightConfig.objectSchemas.dropWhile { it.name == name } +
@@ -52,11 +54,24 @@ object ObjectTypeOperator: ObjectTypeOperatorInterface {
     override suspend fun reloadObjectTypeSchema(schemaId: Int, id: Int): Either<DomainError, Unit> = either {
         val schemas = getObjectTypeSchemas(schemaId).bind().filter { it.id == id }
         schemas.firstOrNull()?.let {
-            parseObjectTypeSchema(it).bind()
+            populateObjectTypeSchemaAttributes(it).bind()
         }?.apply {
             InsightConfig.objectSchemas =
                 InsightConfig.objectSchemas.dropWhile { it.name == name } + this
         }
+    }
+
+    override suspend fun getObjectTypesBySchemaAndRootObjectType(
+        schemaId: Int,
+        rootObjectTypeId: Int
+    ): Either<DomainError, List<ObjectTypeSchema>> = either {
+        val allObjectTypes = getObjectTypesBySchema(schemaId).bind()
+        allObjectTypes
+            .firstOrNull { it.id == rootObjectTypeId }
+            ?.let { rootObject ->
+                listOf(rootObject).plus(findObjectTypeChildren(allObjectTypes, rootObjectTypeId))
+            }
+            ?: ObjectTypeNotFoundError().left().bind()
     }
 
     override suspend fun getObjectTypesBySchema(schemaId: Int): Either<DomainError, List<ObjectTypeSchema>> = either {
@@ -68,7 +83,7 @@ object ObjectTypeOperator: ObjectTypeOperatorInterface {
             "application/json",
             object : TypeToken<List<ObjectTypeSchema>>() {}.type
         ).bind().map {
-            parseObjectTypeSchema(it).bind()
+            populateObjectTypeSchemaAttributes(it).bind()
         }
     }
 
@@ -84,16 +99,26 @@ object ObjectTypeOperator: ObjectTypeOperatorInterface {
         result.bind()
     }
 
-    override suspend fun parseObjectTypeSchema(objectTypeSchema: ObjectTypeSchema): Either<DomainError, ObjectTypeSchema> = either {
-        val attributes = InsightConfig.httpClient.executeRestList<ObjectTypeSchemaAttribute>(
-            "GET",
-            "rest/insight/1.0/objecttype/${objectTypeSchema.id}/attributes",
-            emptyMap(),
-            null,
-            "application/json",
-            object : TypeToken<List<ObjectTypeSchemaAttribute>>() {}.type
-        ).bind()
-        objectTypeSchema.attributes = attributes
-        objectTypeSchema
+    override suspend fun populateObjectTypeSchemaAttributes(objectTypeSchema: ObjectTypeSchema): Either<DomainError, ObjectTypeSchema> =
+        either {
+            val attributes = InsightConfig.httpClient.executeRestList<ObjectTypeSchemaAttribute>(
+                "GET",
+                "rest/insight/1.0/objecttype/${objectTypeSchema.id}/attributes",
+                emptyMap(),
+                null,
+                "application/json",
+                object : TypeToken<List<ObjectTypeSchemaAttribute>>() {}.type
+            ).bind()
+            objectTypeSchema.attributes = attributes
+            objectTypeSchema
+        }
+
+    private fun findObjectTypeChildren(
+        objectTypes: List<ObjectTypeSchema>,
+        rootObjectTypeId: Int
+    ): List<ObjectTypeSchema> {
+        val directChildren = objectTypes.filter { it.parentObjectTypeId == rootObjectTypeId }
+        val transitiveChildren = directChildren.flatMap { child -> findObjectTypeChildren(objectTypes, child.id) }
+        return directChildren.plus(transitiveChildren)
     }
 }

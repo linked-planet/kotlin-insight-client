@@ -1,0 +1,23 @@
+name: Build, Test and Publish Library
+on:
+  release:
+    types: [ created ]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build and Test library
+        run: ./gradlew clean install
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_API_TOKEN }}
+        # The USERNAME and TOKEN need to correspond to the credentials environment variables used in
+        # the publishing section of your build.gradle
+      - name: Publish to GitHub Packages
+        run: |
+          NEW_VERSION=$(./gradlew cV | grep "Project version" | cut -d ":" -f2 | xargs | awk '{print $1}') 
+          echo "New version: ${NEW_VERSION}"
+          echo "Github username: ${GITHUB_ACTOR}"
+          ./gradlew -Pversion=$NEW_VERSION publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_API_TOKEN }}

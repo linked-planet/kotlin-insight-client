@@ -21,7 +21,7 @@ import java.util.Collections.emptyList
 
 data class InsightObjects(
     val searchResult: Int = -1,
-    val objects: List<MyInsightEntry> = emptyList()
+    val objects: List<InsightObject> = emptyList()
 )
 
 fun InsightObjects.plus(insightObjects: InsightObjects): InsightObjects =
@@ -30,32 +30,32 @@ fun InsightObjects.plus(insightObjects: InsightObjects): InsightObjects =
         this.objects.plus(insightObjects.objects)
     )
 
-data class MyInsightEntry(
-    val typeId: Int,
+data class InsightObject(
+    val objectType: ObjectTypeSchema,
     var id: Int,
-    var attributes: List<MyInsightAttribute>
+    var attributes: List<InsightAttribute>
 )
 
-fun MyInsightEntry.getAttributeNames(): List<ObjectTypeSchemaAttribute> {
-    val schema = InsightConfig.objectSchemas.first { it.id == this.typeId }
+fun InsightObject.getAttributeNames(): List<ObjectTypeSchemaAttribute> {
+    val schema = InsightConfig.objectSchemas.first { it.id == this.objectType.id }
     return schema.attributes
 }
 
-fun MyInsightEntry.getAttributeType(name: String): String? {
-    val schema = InsightConfig.objectSchemas.first { it.id == this.typeId }
+fun InsightObject.getAttributeType(name: String): String? {
+    val schema = InsightConfig.objectSchemas.first { it.id == this.objectType.id }
     return schema.attributes.firstOrNull { it.name == name }?.defaultType?.name
 }
 
-fun MyInsightEntry.isReferenceAttribute(name: String): Boolean =
+fun InsightObject.isReferenceAttribute(name: String): Boolean =
     this.attributes.filter { it.attributeName == name }.any { it.value.any { it.referencedObject != null } }
 
-fun MyInsightEntry.isValueAttribute(name: String): Boolean =
+fun InsightObject.isValueAttribute(name: String): Boolean =
     this.attributes.filter { it.attributeName == name }.any { it.value.any { it.value != null } }
 
-fun MyInsightEntry.exists(name: String): Boolean =
+fun InsightObject.exists(name: String): Boolean =
     this.attributes.firstOrNull { it.attributeName == name } != null
 
-fun MyInsightEntry.getStringValue(name: String): String? =
+fun InsightObject.getStringValue(name: String): String? =
     this.attributes
         .firstOrNull { it.attributeName == name }
         ?.value
@@ -63,13 +63,13 @@ fun MyInsightEntry.getStringValue(name: String): String? =
         ?.value
         ?.toString()
 
-fun MyInsightEntry.clearValueList(name: String) {
+fun InsightObject.clearValueList(name: String) {
     this.attributes
         .firstOrNull { it.attributeName == name }
         ?.value = emptyList()
 }
 
-fun MyInsightEntry.getValueList(name: String): List<Any> {
+fun InsightObject.getValueList(name: String): List<Any> {
     return this.attributes
         .firstOrNull { it.attributeName == name }
         ?.value
@@ -77,7 +77,7 @@ fun MyInsightEntry.getValueList(name: String): List<Any> {
         ?: emptyList<Any>()
 }
 
-fun MyInsightEntry.setValueList(name: String, values: List<Any?>) {
+fun InsightObject.setValueList(name: String, values: List<Any?>) {
     val attribute = this.attributes
         .firstOrNull { it.attributeName == name }
     if (attribute == null) {
@@ -94,7 +94,7 @@ fun MyInsightEntry.setValueList(name: String, values: List<Any?>) {
     }
 }
 
-fun MyInsightEntry.removeValue(name: String, value: Any?) {
+fun InsightObject.removeValue(name: String, value: Any?) {
     val values = this.attributes
         .firstOrNull { it.attributeName == name }
         ?.value
@@ -104,11 +104,11 @@ fun MyInsightEntry.removeValue(name: String, value: Any?) {
         ?.value = values.filter { it.value != value }
 }
 
-private fun MyInsightEntry.createAttribute(name: String) {
-    val schema = InsightConfig.objectSchemas.first { it.id == this.typeId }
+private fun InsightObject.createAttribute(name: String) {
+    val schema = InsightConfig.objectSchemas.first { it.id == this.objectType.id }
     val attribute = schema.attributes.firstOrNull { it.name == name }
     if (attribute != null) {
-        this.attributes = this.attributes + MyInsightAttribute(
+        this.attributes = this.attributes + InsightAttribute(
             attribute.id,
             attribute.name,
             emptyList()
@@ -116,7 +116,7 @@ private fun MyInsightEntry.createAttribute(name: String) {
     }
 }
 
-fun MyInsightEntry.addValue(name: String, value: Any?) {
+fun InsightObject.addValue(name: String, value: Any?) {
     val exists = this.attributes
         .firstOrNull { it.attributeName == name }
     if (exists == null) {
@@ -135,7 +135,7 @@ fun MyInsightEntry.addValue(name: String, value: Any?) {
     )
 }
 
-fun MyInsightEntry.setValue(name: String, value: Any?) {
+fun InsightObject.setValue(name: String, value: Any?) {
     val exists = this.attributes
         .firstOrNull { it.attributeName == name }
     if (exists == null) {
@@ -160,50 +160,50 @@ fun MyInsightEntry.setValue(name: String, value: Any?) {
     }
 }
 
-fun MyInsightEntry.setStringValue(name: String, value: String) {
+fun InsightObject.setStringValue(name: String, value: String) {
     this.setValue(name, value)
 }
 
-fun MyInsightEntry.getIntValue(name: String): Int? =
+fun InsightObject.getIntValue(name: String): Int? =
     getStringValue(name)
         ?.toInt()
 
-fun MyInsightEntry.setIntValue(name: String, value: Int?) {
+fun InsightObject.setIntValue(name: String, value: Int?) {
     this.setValue(name, value)
 }
 
-fun MyInsightEntry.getFloatValue(name: String): Float? =
+fun InsightObject.getFloatValue(name: String): Float? =
     getStringValue(name)
         ?.toFloat()
 
-fun MyInsightEntry.setFloatValue(name: String, value: Float?) {
+fun InsightObject.setFloatValue(name: String, value: Float?) {
     this.setValue(name, value)
 }
 
-fun MyInsightEntry.getBooleanValue(name: String): Boolean? =
+fun InsightObject.getBooleanValue(name: String): Boolean? =
     getStringValue(name)
         ?.toBoolean()
 
-fun MyInsightEntry.setBooleanValue(name: String, value: Boolean?) {
+fun InsightObject.setBooleanValue(name: String, value: Boolean?) {
     this.setValue(name, value)
 }
 
-fun MyInsightEntry.getDateTimeValue(name: String): DateTime? =
+fun InsightObject.getDateTimeValue(name: String): DateTime? =
     getStringValue(name)
         ?.let { DateTime.parse(it) }
 
-fun MyInsightEntry.setDateTimeValue(name: String, value: DateTime?) {
+fun InsightObject.setDateTimeValue(name: String, value: DateTime?) {
     this.setValue(name, value.toString())
 }
 
-fun MyInsightEntry.getSingleReference(name: String): MyInsightReference? =
+fun InsightObject.getSingleReference(name: String): InsightReference? =
     this.attributes
         .firstOrNull { it.attributeName == name }
         ?.value
         ?.firstOrNull()
         ?.referencedObject
         ?.let {
-            MyInsightReference(
+            InsightReference(
                 it.objectType!!.id,
                 it.objectType!!.name,
                 it.id,
@@ -213,7 +213,7 @@ fun MyInsightEntry.getSingleReference(name: String): MyInsightReference? =
         }
 
 
-fun MyInsightEntry.removeReference(name: String, objId: Int) {
+fun InsightObject.removeReference(name: String, objId: Int) {
     val objReferences = this.attributes
         .firstOrNull { it.attributeName == name }
         ?.value
@@ -233,13 +233,13 @@ fun MyInsightEntry.removeReference(name: String, objId: Int) {
         ?.value = resultReferences
 }
 
-fun MyInsightEntry.clearReferences(name: String) {
+fun InsightObject.clearReferences(name: String) {
     this.attributes
         .firstOrNull { it.attributeName == name }
         ?.value = emptyList()
 }
 
-fun MyInsightEntry.addReference(name: String, objId: Int) {
+fun InsightObject.addReference(name: String, objId: Int) {
     val references = this.attributes
         .firstOrNull { it.attributeName == name }
         ?.value
@@ -260,18 +260,18 @@ fun MyInsightEntry.addReference(name: String, objId: Int) {
         ?.value = (references + added)
 }
 
-fun MyInsightEntry.setSingleReference(name: String, objId: Int) {
+fun InsightObject.setSingleReference(name: String, objId: Int) {
     this.clearReferences(name)
     this.addReference(name, objId)
 }
 
-fun MyInsightEntry.getMultiReference(name: String): List<MyInsightReference> =
+fun InsightObject.getMultiReference(name: String): List<InsightReference> =
     this.attributes
         .firstOrNull { it.attributeName == name }
         ?.value
         ?.mapNotNull { it.referencedObject }
         ?.map { reference ->
-            MyInsightReference(
+            InsightReference(
                 reference.objectType!!.id,
                 reference.objectType!!.name,
                 reference.id,
@@ -281,7 +281,19 @@ fun MyInsightEntry.getMultiReference(name: String): List<MyInsightReference> =
         }
         ?: emptyList()
 
-data class MyInsightReference(
+fun InsightObject.toDTO(): InsightObjectDTO {
+    val attributeMapping = this.attributes.map {
+        it.attributeName to (this.getStringValue(it.attributeName)?:"")
+    }.toMap()
+    return InsightObjectDTO(
+        this.objectType,
+        this.id,
+        this.getStringValue("Name")?:"",
+        attributeMapping
+    )
+}
+
+data class InsightReference(
     val objectTypeId: Int,
     val objectTypeName: String,
     val objectId: Int,
@@ -289,7 +301,7 @@ data class MyInsightReference(
     val objectName: String
 )
 
-data class MyInsightAttribute(
+data class InsightAttribute(
     val attributeId: Int,
     val attributeName: String,
     var value: List<ObjectAttributeValue>
@@ -298,7 +310,8 @@ data class MyInsightAttribute(
 data class ObjectTypeSchema(
     val id: Int,
     val name: String,
-    var attributes: List<ObjectTypeSchemaAttribute>
+    var attributes: List<ObjectTypeSchemaAttribute>,
+    val parentObjectTypeId: Int?
 )
 
 data class ObjectEditItem(
@@ -329,7 +342,7 @@ data class ObjectTypeAttributeDefaultType(
 
 data class InsightObjectEntries(
     val totalFilterCount: Int,
-    val objectEntries: List<InsightObject>
+    val objectEntries: List<InsightObjectApiResponse>
 )
 
 data class InsightSchemas(
@@ -341,12 +354,19 @@ data class InsightSchema(
     val name: String
 )
 
-data class InsightObject(
+data class InsightObjectApiResponse(
     val id: Int,
     val label: String,
     val objectKey: String,
     val objectType: ObjectType,
-    val attributes: List<InsightAttribute>
+    val attributes: List<InsightAttributeApiResponse>
+)
+
+data class InsightObjectDTO(
+    val objectType: ObjectTypeSchema,
+    val id: Int,
+    val name: String,
+    val attributes: Map<String, String>
 )
 
 data class ObjectType(
@@ -355,12 +375,8 @@ data class ObjectType(
     val objectSchemaId: Int
 )
 
-data class InsightObjectAttribute(
-    val id: Int,
-    val objectTypeAttribute: List<InsightAttribute>
-)
 
-data class InsightAttribute(
+data class InsightAttributeApiResponse(
     val id: Int,
     val objectTypeAttribute: ObjectTypeAttribute?,
     val objectTypeAttributeId: Int,
@@ -442,16 +458,4 @@ data class InsightAttachment(
     val comment: String,
     val commentOutput: String,
     val url: String
-) {
-//    suspend fun getBytes(): Either<DomainError, ByteArray?> {
-//        return AttachmentOperator.downloadAttachment(this)
-//    }
-//
-//    suspend fun delete(): Boolean {
-//        if (id <= 0) {
-//            return false
-//        }
-//        AttachmentOperator.deleteAttachment(this.id)
-//        return true
-//    }
-}
+)
