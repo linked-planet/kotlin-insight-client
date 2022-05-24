@@ -512,12 +512,6 @@
             <url>https://maven.atlassian.com/repository/public</url>
             <snapshots><enabled>false</enabled></snapshots>
         </repository>
-        <!-- jndi -->
-        <repository>
-            <id>geomajas</id>
-            <url>http://maven.geomajas.org</url>
-            <snapshots><enabled>false</enabled></snapshots>
-        </repository>
     </repositories>
 
     <pluginRepositories>

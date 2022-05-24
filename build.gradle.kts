@@ -8,7 +8,7 @@ plugins {
     id("org.jetbrains.dokka") version "1.6.10" apply (false)
 }
 
-val uiKitVersion: String = scmVersion.version
+val libVersion: String = scmVersion.version
 allprojects {
     repositories {
         mavenCentral()
@@ -16,7 +16,7 @@ allprojects {
     }
 
     group = "com.linked-planet"
-    version = uiKitVersion
+    version = libVersion
 }
 
 subprojects {
