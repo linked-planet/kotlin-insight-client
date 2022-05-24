@@ -38,6 +38,6 @@ jobs:
 
       - name: Integration test for confluence
         run: |
-          NEW_VERSION=$(./gradlew cV | grep "Project version" | cut -d ":" -f2 | xargs | awk '{print $1}') 
+          set NEW_VERSION=$(./gradlew cV | grep "Project version" | cut -d ":" -f2 | xargs | awk '{print $1}') 
           echo "mvn building version: ${{NEW_VERSION}}"
           mvn clean -f kotlin-insight-client-atlas-test/pom.xml -B verify -Pci -Dlibrary.version=${{NEW_VERSION}}
