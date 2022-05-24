@@ -1,0 +1,53 @@
+/**
+ * Copyright 2022 linked-planet GmbH.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.linkedplanet.kotlininsightclient.api.interfaces
+
+import arrow.core.Either
+import com.linkedplanet.kotlininsightclient.api.model.MyInsightEntry
+import com.linkedplanet.kotlinhttpclient.error.DomainError
+import com.linkedplanet.kotlininsightclient.api.model.InsightObjects
+
+interface ObjectOperatorInterface {
+
+    var RESULTS_PER_PAGE: Int
+
+    suspend fun getObjects(objectTypeId: Int, withChildren: Boolean = false, pageFrom: Int = 1, pageTo: Int? = null, perPage: Int = RESULTS_PER_PAGE): Either<DomainError, InsightObjects>
+
+    suspend fun getObjectById(id: Int): Either<DomainError, MyInsightEntry?>
+
+    suspend fun getObjectByKey(key: String): Either<DomainError, MyInsightEntry?>
+
+    suspend fun getObjectByName(objectTypeId: Int, name: String): Either<DomainError, MyInsightEntry?>
+
+    suspend fun getObjectsByIQL(
+        objectTypeId: Int,
+        withChildren: Boolean = false,
+        iql: String,
+        pageFrom: Int = 1,
+        pageTo: Int? = null,
+        perPage: Int = RESULTS_PER_PAGE
+    ): Either<DomainError, InsightObjects>
+
+    suspend fun getObjectCount(iql: String): Either<DomainError, Int>
+
+    suspend fun updateObject(obj: MyInsightEntry): Either<DomainError, MyInsightEntry>
+
+    suspend fun deleteObject(id: Int): Boolean
+
+    suspend fun createObject(objectTypeId: Int, func: (MyInsightEntry) -> Unit): Either<DomainError, MyInsightEntry>
+
+    // PRIVATE DOWN HERE
+}

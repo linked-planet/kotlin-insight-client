@@ -1,0 +1,50 @@
+name: Development (Build & Test)
+on:
+  push:
+    branches-ignore:
+      - master
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-kotlin-insight-client-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-kotlin-insight-client-
+
+      - name: docker hub login
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+
+      - name: Startup Jira and Insight
+        run: docker-compose up -d
+
+      - name: Wait for Jira and Insight
+        run: ./scripts/waitingForJira.sh
+
+      - name: Extract version number
+        run: |
+          NEW_VERSION=$(./gradlew cV | grep "Project version" | cut -d ":" -f2 | xargs | awk '{print $1}') 
+          echo "New version: ${NEW_VERSION}"
+          echo "LIBRARY_VERSION=${NEW_VERSION}" >> $GITHUB_ENV
+
+      - name: Build library
+        run: ./gradlew clean install --info
+
+      - name: Integration test for ktor
+        run: ./gradlew test --info
+
+      - name: Integration test for confluence
+        run: |
+          echo "mvn building version: ${{LIBRARY_VERSION}}"
+          mvn clean -f kotlin-insight-client-atlas-test/pom.xml -B verify -Pci -Dlibrary.version=${{LIBRARY_VERSION}}
+        env:
+          LIBRARY_VERSION: ${{ env.LIBRARY_VERSION }}
