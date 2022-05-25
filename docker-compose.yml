@@ -10,7 +10,7 @@ services:
       - POSTGRES_DB=jira
 
   jira:
-    image: kadega/jira-insight:8
+    image: 276003551821.dkr.ecr.eu-central-1.amazonaws.com/kotlin-insight-client:1
     network_mode: host
     environment:
       - CATALINA_OPTS=-Xmx3072m -Xms3072m

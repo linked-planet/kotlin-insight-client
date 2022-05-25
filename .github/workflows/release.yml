@@ -1,23 +1,56 @@
-name: Build, Test and Publish Library
+name: Production (Build & Test & Publish)
 on:
   release:
     types: [ created ]
+
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Build and Test library
-        run: ./gradlew clean install
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_API_TOKEN }}
-        # The USERNAME and TOKEN need to correspond to the credentials environment variables used in
-        # the publishing section of your build.gradle
-      - name: Publish to GitHub Packages
+
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-kotlin-insight-client-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-kotlin-insight-client-
+
+      - name: Configure aws ecr credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+
+      - name: Login aws ecr
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Startup Jira and Insight
+        run: docker-compose up -d
+
+      - name: Wait for Jira and Insight
+        run: ./scripts/waitingForJira.sh
+
+      - name: Build library
+        run: ./gradlew clean install --info
+
+      - name: Integration test for ktor
+        run: ./gradlew test --info
+
+      - name: Integration test for confluence
         run: |
           NEW_VERSION=$(./gradlew cV | grep "Project version" | cut -d ":" -f2 | xargs | awk '{print $1}') 
-          echo "New version: ${NEW_VERSION}"
-          echo "Github username: ${GITHUB_ACTOR}"
-          ./gradlew -Pversion=$NEW_VERSION publish
+          echo "mvn building version: ${NEW_VERSION}"
+          mvn clean -f kotlin-insight-client-atlas-test/pom.xml -B verify -Pci -Dlibrary.version=${NEW_VERSION}
+
+      - name: Publish Library to Maven Central
+        run: ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_API_TOKEN }}
+          ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.SONATYPE_USERNAME }}
+          ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.SONATYPE_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}

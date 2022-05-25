@@ -5,9 +5,8 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'kotlin-insight-wrapper'
-include 'kotlin-insight-wrapper-api'
-include 'kotlin-insight-wrapper-core'
-include 'kotlin-insight-wrapper-ktor'
-include 'kotlin-insight-wrapper-test-base'
-
+rootProject.name = 'kotlin-insight-client'
+include 'kotlin-insight-client-api'
+include 'kotlin-insight-client-core'
+include 'kotlin-insight-client-ktor-test'
+include 'kotlin-insight-client-test-base'
