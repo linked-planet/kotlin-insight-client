@@ -1,7 +1,5 @@
 name: Production (Build & Test & Publish)
 on:
-  push:
-    branches: [ master ]
   release:
     types: [ created ]
 
