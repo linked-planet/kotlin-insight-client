@@ -11,6 +11,7 @@ plugins {
 val libVersion: String = scmVersion.version
 allprojects {
     repositories {
+        mavenLocal()
         mavenCentral()
         maven("https://maven.atlassian.com/repository/public")
     }
