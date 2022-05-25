@@ -87,7 +87,7 @@ object ObjectOperator : ObjectOperatorInterface {
                 ObjectUpdateResponse::class.java
             )
         return response.map {
-            getObjectById(it!!.id).map { it!! }
+            getObjectById(it.body!!.id).map { it!! }
         }.flatten()
     }
 
@@ -120,7 +120,7 @@ object ObjectOperator : ObjectOperatorInterface {
             "application/json",
             ObjectUpdateResponse::class.java
         )
-        obj.id = response.bind()!!.id
+        obj.id = response.bind().body!!.id
         getObjectById(obj.id).bind()!!
     }
 
@@ -140,7 +140,7 @@ object ObjectOperator : ObjectOperatorInterface {
                 "resultsPerPage" to resultsPerPage.toString()
             )
         ).map { response ->
-            JsonParser().parse(response).asJsonObject.get("pageSize").asInt
+            JsonParser().parse(response.body).asJsonObject.get("pageSize").asInt
         }
     }
 
@@ -169,7 +169,7 @@ object ObjectOperator : ObjectOperatorInterface {
                 null,
                 "application/json",
                 InsightObjectEntries::class.java
-            ).bind()?.toValues()?.objects ?: emptyList()
+            ).map { it.body }.bind()?.toValues()?.objects ?: emptyList()
         }.let {
             InsightObjects(
                 objectsAmount,
@@ -199,7 +199,7 @@ object ObjectOperator : ObjectOperatorInterface {
             null,
             "application/json",
             InsightObjectEntries::class.java
-        ).bind()?.toValues()?.objects?.firstOrNull()
+        ).map { it.body }.bind()?.toValues()?.objects?.firstOrNull()
     }
 
     override suspend fun getObjectCount(iql: String): Either<DomainError, Int> = either {
@@ -210,7 +210,7 @@ object ObjectOperator : ObjectOperatorInterface {
                 "page" to "1",
                 "resultsPerPage" to "1"
             )
-        ).bind().let { response: String ->
+        ).map { it.body }.bind().let { response: String ->
             JsonParser().parse(response).asJsonObject.get("totalFilterCount").asInt
         }
     }

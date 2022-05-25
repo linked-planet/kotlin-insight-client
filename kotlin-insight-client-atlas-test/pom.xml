@@ -21,7 +21,7 @@
 
     <properties>
         <library.version>0.1.0-SNAPSHOT</library.version>
-        <httpclient.version>0.2.0</httpclient.version>
+        <httpclient.version>0.3.0</httpclient.version>
         <!-- This key is used to keep the consistency between the key in atlassian-plugin.xml and the key to generate bundle. -->
         <atlassian.plugin.key>${project.groupId}.${project.artifactId}</atlassian.plugin.key>
         <atlassian.spring.scanner.version>2.2.1</atlassian.spring.scanner.version>

@@ -33,6 +33,6 @@ object HistoryOperator: HistoryOperatorInterface {
             null,
             "application/json",
             object : TypeToken<List<InsightHistoryItem>>() {}.type
-        ).bind()
+        ).map { it.body }.bind()
     }
 }

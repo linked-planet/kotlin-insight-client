@@ -22,9 +22,9 @@ import com.google.gson.reflect.TypeToken
 import com.linkedplanet.kotlinhttpclient.error.DomainError
 import com.linkedplanet.kotlininsightclient.api.InsightConfig
 import com.linkedplanet.kotlininsightclient.api.interfaces.ObjectTypeOperatorInterface
+import com.linkedplanet.kotlininsightclient.api.model.ObjectTypeNotFoundError
 import com.linkedplanet.kotlininsightclient.api.model.ObjectTypeSchema
 import com.linkedplanet.kotlininsightclient.api.model.ObjectTypeSchemaAttribute
-import com.linkedplanet.kotlininsightclient.api.model.ObjectTypeNotFoundError
 
 object ObjectTypeOperator : ObjectTypeOperatorInterface {
     override suspend fun loadAllObjectTypeSchemas(): Either<DomainError, List<ObjectTypeSchema>> = either {
@@ -82,20 +82,21 @@ object ObjectTypeOperator : ObjectTypeOperatorInterface {
             null,
             "application/json",
             object : TypeToken<List<ObjectTypeSchema>>() {}.type
-        ).bind().map {
+        ).map { it.body }.bind().map {
             populateObjectTypeSchemaAttributes(it).bind()
         }
     }
 
     override suspend fun getObjectTypeSchemas(schemaId: Int): Either<DomainError, List<ObjectTypeSchema>> = either {
-        val result: Either<DomainError, List<ObjectTypeSchema>> = InsightConfig.httpClient.executeRestList(
-            "GET",
-            "rest/insight/1.0/objectschema/$schemaId/objecttypes/flat",
-            emptyMap(),
-            null,
-            "application/json",
-            object : TypeToken<List<ObjectTypeSchema>>() {}.type
-        )
+        val result: Either<DomainError, List<ObjectTypeSchema>> =
+            InsightConfig.httpClient.executeRestList<ObjectTypeSchema>(
+                "GET",
+                "rest/insight/1.0/objectschema/$schemaId/objecttypes/flat",
+                emptyMap(),
+                null,
+                "application/json",
+                object : TypeToken<List<ObjectTypeSchema>>() {}.type
+            ).map { it.body }
         result.bind()
     }
 
@@ -108,7 +109,7 @@ object ObjectTypeOperator : ObjectTypeOperatorInterface {
                 null,
                 "application/json",
                 object : TypeToken<List<ObjectTypeSchemaAttribute>>() {}.type
-            ).bind()
+            ).map { it.body }.bind()
             objectTypeSchema.attributes = attributes
             objectTypeSchema
         }

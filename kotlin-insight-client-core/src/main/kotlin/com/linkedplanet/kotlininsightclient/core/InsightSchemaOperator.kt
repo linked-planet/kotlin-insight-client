@@ -32,6 +32,6 @@ object InsightSchemaOperator: InsightSchemaOperatorInterface {
             null,
             "application/json",
             object : TypeToken<InsightSchemas>() {}.type
-        ).map { it!! }
+        ).map { it.body!! }
 
 }

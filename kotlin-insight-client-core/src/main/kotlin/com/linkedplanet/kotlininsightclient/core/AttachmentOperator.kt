@@ -18,26 +18,27 @@ package com.linkedplanet.kotlininsightclient.core
 import arrow.core.Either
 import arrow.core.computations.either
 import com.google.gson.reflect.TypeToken
-import com.linkedplanet.kotlininsightclient.api.model.InsightAttachment
 import com.linkedplanet.kotlinhttpclient.error.DomainError
 import com.linkedplanet.kotlininsightclient.api.InsightConfig
 import com.linkedplanet.kotlininsightclient.api.interfaces.AttachmentOperatorInterface
+import com.linkedplanet.kotlininsightclient.api.model.InsightAttachment
 import java.io.ByteArrayOutputStream
 import java.net.URLConnection
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
-object AttachmentOperator: AttachmentOperatorInterface {
+object AttachmentOperator : AttachmentOperatorInterface {
 
     override suspend fun getAttachments(objectId: Int): Either<DomainError, List<InsightAttachment>> = either {
-        val result: Either<DomainError, List<InsightAttachment>> = InsightConfig.httpClient.executeRestList(
-            "GET",
-            "rest/insight/1.0/attachments/object/${objectId}",
-            emptyMap(),
-            null,
-            "application/json",
-            object : TypeToken<List<InsightAttachment>>() {}.type
-        )
+        val result: Either<DomainError, List<InsightAttachment>> =
+            InsightConfig.httpClient.executeRestList<InsightAttachment>(
+                "GET",
+                "rest/insight/1.0/attachments/object/${objectId}",
+                emptyMap(),
+                null,
+                "application/json",
+                object : TypeToken<List<InsightAttachment>>() {}.type
+            ).map { it.body }
         result.bind()
     }
 
@@ -49,7 +50,7 @@ object AttachmentOperator: AttachmentOperatorInterface {
             emptyMap(),
             null,
             null
-        )
+        ).map { it.body }
         result.bind()
     }
 
@@ -79,7 +80,7 @@ object AttachmentOperator: AttachmentOperatorInterface {
             emptyMap(),
             null,
             "application/json"
-        ).bind()
+        ).map { it.body }.bind()
         result
     }
 
