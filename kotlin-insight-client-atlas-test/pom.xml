@@ -123,13 +123,6 @@
             <version>${arrow.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>io.rest-assured</groupId>
-            <artifactId>rest-assured</artifactId>
-            <version>4.2.1</version>
-            <scope>test</scope>
-        </dependency>
-
         <!-- insight client dependencies -->
         <dependency>
             <groupId>org.jetbrains.kotlinx</groupId>
@@ -162,6 +155,7 @@
             <version>${library.version}</version>
             <scope>test</scope>
         </dependency>
+
         <!-- WIRED TEST RUNNER DEPENDENCIES -->
         <dependency>
             <groupId>com.atlassian.plugins</groupId>
@@ -185,6 +179,12 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.13.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>rest-assured</artifactId>
+            <version>4.2.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -340,7 +340,7 @@
                     <productDataVersion>${confluence.version}</productDataVersion>
                     <productDataPath>${project.basedir}/src/test/resources/generated-test-resources.zip
                     </productDataPath>
-<!--                    <contextPath>/</contextPath>-->
+                    <!-- <contextPath>/</contextPath> Do not specify -->
                     <enableQuickReload>true</enableQuickReload>
                     <jvmArgs>-Xms2g -Xmx2g -XX:+UseG1GC</jvmArgs>
                     <httpPort>${http.port}</httpPort>
