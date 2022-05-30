@@ -16,15 +16,12 @@
 package com.linkedplanet.kotlininsightclient
 
 import com.linkedplanet.kotlininsightclient.api.model.*
-import com.linkedplanet.kotlininsightclient.core.AttachmentOperator
-import com.linkedplanet.kotlininsightclient.core.HistoryOperator
-import com.linkedplanet.kotlininsightclient.core.ObjectOperator
-import com.linkedplanet.kotlininsightclient.core.ObjectTypeOperator
+import com.linkedplanet.kotlininsightclient.core.*
+import java.security.MessageDigest
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
-import java.security.MessageDigest
 
 
 abstract class AbstractMainTest {
@@ -273,6 +270,95 @@ abstract class AbstractMainTest {
             assertEquals("fd411837a51c43670e8d7367e64f72dbbcda5016f59988547c12d067505ef75b", sha256HashIS)
         }
         println("### END testAttachments")
+    }
+
+    @Test
+    fun testGetObjectsWithoutChildren() {
+        println("### START testGetObjectsWithoutChildren")
+        val objectsList = runBlocking {
+            ObjectOperator.getObjects(OBJECTS.Abstract.id, withChildren = false).orNull()!!
+        }
+        assertTrue(objectsList.searchResult == 0)
+
+        val objects = objectsList.objects
+        assertTrue(objects.size == 0)
+
+        println("### END testGetObjectsWithoutChildren")
+    }
+
+    @Test
+    fun testGetObjectsWithChildren() {
+        println("### START testGetObjectsWithChildren")
+        val objectsList = runBlocking {
+            ObjectOperator.getObjects(OBJECTS.Abstract.id, withChildren = true).orNull()!!
+        }
+        assertTrue(objectsList.searchResult == 2)
+
+        val objects = objectsList.objects
+        assertTrue(objects.size == 2)
+
+        val firstObj = objects.first()
+        assertTrue(firstObj.id == 169)
+
+        val secondObj = objects[1]
+        assertTrue(secondObj.id == 170)
+
+        println("### END testGetObjectsWithChildren")
+    }
+
+    @Test
+    fun testGetObjectsWithChildrenPaginated() {
+        println("### START testGetObjectsWithChildrenPaginated")
+
+        // page 1 and 2 implicit
+        val allObjectsList = runBlocking {
+            ObjectOperator.getObjects(OBJECTS.Abstract.id, withChildren = true, pageFrom = 1, perPage = 1).orNull()!!
+        }
+        assertTrue(allObjectsList.searchResult == 2)
+        val allObjects = allObjectsList.objects
+        assertTrue(allObjects.size == 2)
+        assertTrue(allObjects[0].id == 169)
+        assertTrue(allObjects[1].id == 170)
+
+        // page 1 and 2 explicit
+        val allExplObjectsList = runBlocking {
+            ObjectOperator.getObjects(OBJECTS.Abstract.id, withChildren = true, pageFrom = 1, pageTo = 2, perPage = 1).orNull()!!
+        }
+        assertTrue(allExplObjectsList.searchResult == 2)
+        val allExplObjects = allExplObjectsList.objects
+        assertTrue(allExplObjects.size == 2)
+        assertTrue(allExplObjects[0].id == 169)
+        assertTrue(allExplObjects[1].id == 170)
+
+        // page 1
+        val firstObjectsList = runBlocking {
+            ObjectOperator.getObjects(OBJECTS.Abstract.id, withChildren = true, pageFrom = 1, pageTo = 1, perPage = 1)
+                .orNull()!!
+        }
+        assertTrue(firstObjectsList.searchResult == 2)
+        val firstObjects = firstObjectsList.objects
+        assertTrue(firstObjects.size == 1)
+        assertTrue(firstObjects[0].id == 169)
+
+        // page 2
+        val secondObjectsList = runBlocking {
+            ObjectOperator.getObjects(OBJECTS.Abstract.id, withChildren = true, pageFrom = 2, pageTo = 2, perPage = 1)
+                .orNull()!!
+        }
+        assertTrue(secondObjectsList.searchResult == 2)
+        val secondObjects = secondObjectsList.objects
+        assertTrue(secondObjects.size == 1)
+        assertTrue(secondObjects[0].id == 170)
+
+        // page doesn't exist
+        val emptyObjectsList = runBlocking {
+            ObjectOperator.getObjects(OBJECTS.Abstract.id, withChildren = true, pageFrom = 3, perPage = 1).orNull()!!
+        }
+        assertTrue(emptyObjectsList.searchResult == 2)
+        val emptyObjects = emptyObjectsList.objects
+        assertTrue(emptyObjects.isEmpty())
+
+        println("### END testGetObjectsWithChildrenPaginated")
     }
 
     private fun calculateSha256(bytes: ByteArray): String =
