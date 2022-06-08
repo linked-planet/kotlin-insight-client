@@ -35,22 +35,19 @@ object ObjectOperator : ObjectOperatorInterface {
         pageFrom: Int,
         pageTo: Int?,
         perPage: Int
-    ): Either<DomainError, InsightObjects> {
+    ): Either<DomainError, InsightObjects> = either {
         val iql = getIQLWithChildren(objectTypeId, withChildren)
-        return getObjectsByPlainIQL(objectTypeId, iql, pageFrom, pageTo, perPage)
+        getObjectsByPlainIQL(iql, pageFrom, pageTo, perPage).bind()
     }
 
-    override suspend fun getObjectById(id: Int): Either<DomainError, InsightObject?> {
-        return getObjectByPlainIQL("objectId=$id")
-    }
+    override suspend fun getObjectById(id: Int): Either<DomainError, InsightObject?> =
+        getObjectByPlainIQL("objectId=$id")
 
-    override suspend fun getObjectByKey(key: String): Either<DomainError, InsightObject?> {
-        return getObjectByPlainIQL("Key=\"$key\"")
-    }
+    override suspend fun getObjectByKey(key: String): Either<DomainError, InsightObject?> =
+        getObjectByPlainIQL("Key=\"$key\"")
 
-    override suspend fun getObjectByName(objectTypeId: Int, name: String): Either<DomainError, InsightObject?> {
-        return getObjectByPlainIQL("objectTypeId=$objectTypeId AND Name=\"$name\"")
-    }
+    override suspend fun getObjectByName(objectTypeId: Int, name: String): Either<DomainError, InsightObject?> =
+        getObjectByPlainIQL("objectTypeId=$objectTypeId AND Name=\"$name\"")
 
     override suspend fun getObjectsByIQL(
         objectTypeId: Int,
@@ -59,36 +56,37 @@ object ObjectOperator : ObjectOperatorInterface {
         pageFrom: Int,
         pageTo: Int?,
         perPage: Int
-    ): Either<DomainError, InsightObjects> {
+    ): Either<DomainError, InsightObjects> = either {
         val fullIql = "${getIQLWithChildren(objectTypeId, withChildren)} AND $iql"
-        return getObjectsByPlainIQL(
-            objectTypeId,
+        getObjectsByPlainIQL(
             fullIql,
             pageFrom,
             pageTo,
             perPage
-        )
+        ).bind()
     }
 
-    override suspend fun updateObject(obj: InsightObject): Either<DomainError, InsightObject> {
+    override suspend fun updateObject(obj: InsightObject): Either<DomainError, InsightObject> = either {
         val objRefEditAttributes = obj.getEditReferences()
         val objEditAttributes = obj.getEditValues()
         val editItem = ObjectEditItem(
             obj.objectType.id,
             objEditAttributes + objRefEditAttributes
         )
-        val response =
-            InsightConfig.httpClient.executeRest<ObjectUpdateResponse>(
-                "PUT",
-                "rest/insight/1.0/object/${obj.id}",
-                emptyMap(),
-                GSON.toJson(editItem),
-                "application/json",
-                ObjectUpdateResponse::class.java
-            )
-        return response.map {
-            getObjectById(it.body!!.id).map { it!! }
-        }.flatten()
+
+        InsightConfig.httpClient.executeRest<ObjectUpdateResponse>(
+            "PUT",
+            "rest/insight/1.0/object/${obj.id}",
+            emptyMap(),
+            GSON.toJson(editItem),
+            "application/json",
+            ObjectUpdateResponse::class.java
+        )
+            .map {
+                getObjectById(it.body!!.id).map { it!! }
+            }
+            .flatten()
+            .bind()
     }
 
     override suspend fun deleteObject(id: Int): Boolean =
@@ -127,32 +125,29 @@ object ObjectOperator : ObjectOperatorInterface {
 
     // PRIVATE DOWN HERE
     private suspend fun getObjectPages(
-        objectTypeId: Int,
         iql: String,
         resultsPerPage: Int = RESULTS_PER_PAGE
-    ): Either<DomainError, Int> {
-        return InsightConfig.httpClient.executeGetCall(
+    ): Either<DomainError, Int> =
+        InsightConfig.httpClient.executeGetCall(
             "rest/insight/1.0/iql/objects",
             mapOf(
-                "iql" to "objectTypeId=\"$objectTypeId\" AND $iql",
+                "iql" to iql,
                 "includeTypeAttributes" to "true",
                 "page" to "1",
                 "resultsPerPage" to resultsPerPage.toString()
             )
         ).map { response ->
-            JsonParser().parse(response.body).asJsonObject.get("pageSize").asInt
+            JsonParser().parse(response.body).asJsonObject.get("toIndex").asInt
         }
-    }
 
     private suspend fun getObjectsByPlainIQL(
-        objectTypeId: Int,
         iql: String,
         pageFrom: Int,
         pageTo: Int?,
         perPage: Int
     ): Either<DomainError, InsightObjects> = either {
         val objectsAmount = getObjectCount(iql).bind()
-        val maxPage = getObjectPages(objectTypeId, iql, perPage).bind()
+        val maxPage = getObjectPages(iql, perPage).bind()
         val lastPage = pageTo ?: maxPage
         lastPage.let { maxPageSize ->
             (pageFrom..maxPageSize).toList()

@@ -20,7 +20,8 @@ enum class OBJECTS(val id: Int) {
     Country(2),
     TestWithLists(34),
     SimpleObject(35),
-    Many(65)
+    Many(65),
+    Abstract(98)
 }
 
 enum class MANY {
